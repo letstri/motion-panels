@@ -156,12 +156,12 @@ const FOLDS = {
     transition: { duration: 0.35 },
   },
   scale: {
-    animate: { opacity: 1, scale: 1 },
-    initial: { opacity: 0, scale: 0.9 },
+    animate: { scale: 1 },
+    initial: { scale: 0.85 },
   },
   slide: {
-    animate: { scale: 1, translateX: '0' },
-    initial: { scale: 0.85, translateX: '100%' },
+    animate: { translateX: '0%' },
+    initial: { translateX: '-100%' },
   },
   snap: {
     transition: { duration: 0 },
@@ -225,7 +225,7 @@ export const FoldDemo = () => {
             collapsed={collapsed}
             onCollapsedChange={setCollapsed}
             onSizeChange={setWidth}
-            style={{ originX: 0 }}
+            style={{ originX: 1 }}
           >
             <Card label="Navigator" size={px(width, collapsed)}>
               <Rows items={SYMBOLS} active="Panel" />

@@ -316,7 +316,7 @@ export function Output() {
       <Section
         id="collapsing"
         title="Collapsing and folds"
-        lead="collapsed folds a panel to zero, and its content animates with whatever motion props the panel carries — so the fold is yours to design. Pick a preset and toggle. Passing onCollapsedChange also turns on drag-below-half-the-minimum and Enter on the separator."
+        lead="collapsed folds a panel to zero, and its content animates with whatever motion props the panel carries — so the fold is yours to design. Pick a preset and toggle. The content is anchored to the edge facing the filling panel, so a slide leans into the fold and originX pins a scale to that same edge. Passing onCollapsedChange also turns on drag-below-half-the-minimum and Enter on the separator."
       >
         <FoldDemo />
         <Code
@@ -336,10 +336,10 @@ export function Navigator() {
         collapsed={collapsed}
         onCollapsedChange={setCollapsed}
         onSizeChange={setWidth}
-        initial={{ scale: 0.85, translateX: '100%' }}
-        animate={{ scale: 1, translateX: '0' }}
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
         transition={{ bounce: 0.4, duration: 0.7, type: 'spring' }}
-        style={{ originX: 0 }}
+        style={{ originX: 1 }}
       >
         <nav>Navigator</nav>
       </Panel>
