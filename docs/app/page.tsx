@@ -15,6 +15,13 @@ import {
 } from './demos'
 import { Source } from './source-view'
 
+const TABLE =
+  'mt-3 w-full border-collapse text-[14px] [&_td]:border-line [&_td]:border-t [&_td]:py-2 [&_td]:pr-4 [&_td]:align-top [&_td]:text-muted [&_td:first-child]:whitespace-nowrap [&_td:first-child]:text-text'
+
+const PROPS = `${TABLE} table-fixed [&_td:first-child]:w-[180px] [&_td:first-child]:whitespace-normal [&_td:nth-child(2)]:w-[200px]`
+
+const LEAD = 'max-w-[68ch] text-muted text-pretty'
+
 const SECTIONS = [
   { id: 'install', title: 'Install' },
   { id: 'quick-start', title: 'Quick start' },
@@ -40,9 +47,11 @@ const Section = ({
   lead: string
   title: string
 }) => (
-  <section id={id}>
-    <h2>{title}</h2>
-    <p>{lead}</p>
+  <section className="scroll-mt-8" id={id}>
+    <h2 className="before:text-line-strong mb-2.5 flex items-baseline gap-3 font-serif text-[22px] tracking-[-0.01em] before:font-mono before:text-[12px] before:content-[counter(section,decimal-leading-zero)] before:[counter-increment:section] min-[900px]:text-[26px]">
+      {title}
+    </h2>
+    <p className={LEAD}>{lead}</p>
     {children}
   </section>
 )
@@ -168,25 +177,35 @@ const CORE_API: [string, string, string][] = [
 ]
 
 const DocsPage = () => (
-  <div className="layout">
-    <nav className="toc">
-      <strong>glidepanels</strong>
-      <ol>
+  <div className="mx-auto grid max-w-[1080px] grid-cols-[minmax(0,1fr)] gap-10 px-5 pt-10 pb-25 min-[900px]:grid-cols-[200px_minmax(0,1fr)] min-[900px]:gap-16 min-[900px]:px-8 min-[900px]:pt-16 min-[900px]:pb-40">
+    <nav className="self-start min-[900px]:sticky min-[900px]:top-16">
+      <strong className="text-text block font-mono text-[12px] tracking-[0.02em]">
+        glidepanels
+      </strong>
+      <ol className="mt-4 flex list-none flex-wrap gap-x-4 p-0 [counter-reset:toc] min-[900px]:block">
         {SECTIONS.map((section) => (
           <li key={section.id}>
-            <a href={`#${section.id}`}>{section.title}</a>
+            <a
+              className="text-muted before:text-line-strong hover:text-text flex gap-2.5 py-1 text-[13px] no-underline before:font-mono before:text-[11px] before:content-[counter(toc,decimal-leading-zero)] before:[counter-increment:toc]"
+              href={`#${section.id}`}
+            >
+              {section.title}
+            </a>
           </li>
         ))}
       </ol>
     </nav>
-    <main>
-      <header>
-        <h1>Resizable panels that glide</h1>
-        <p className="tagline">
+    <main className="flex min-w-0 flex-col gap-18 [counter-reset:section]">
+      <header className="flex flex-col gap-4">
+        <h1 className="font-serif text-[32px] leading-[1.05] tracking-[-0.02em] min-[900px]:text-[42px]">
+          Resizable panels that glide
+        </h1>
+        <p className="text-muted max-w-[60ch] text-[17px] text-pretty">
           A framework-agnostic core with a React adapter on top. Unstyled,
           animated with motion, no third-party layout library. Separators are
           optional — a sized panel drags by its own edge. Every demo below runs
-          the published package; the only styling is the CSS on this page.
+          the published package; the only styling is the Tailwind on this page,
+          and each demo can show you its own.
         </p>
       </header>
 
@@ -243,7 +262,6 @@ export function Layout() {
           blocks={[
             { file: 'demos.tsx', region: 'split' },
             { file: 'demos.tsx', region: 'helpers' },
-            { file: 'globals.css', region: 'demo-panes', lang: 'css' },
           ]}
         />
       </Section>
@@ -254,7 +272,7 @@ export function Layout() {
         lead="Drop a Separator between two panels and the same split gains a visible grip, keyboard control and double-click reset. It finds the sized panel next to it on its own, resizes that one, and sits over its edge without taking space in the flow. It is a focusable [role='separator'] carrying the panel size on aria-valuenow, so it reads and drives from the keyboard with nothing extra."
       >
         <SeparatorDemo />
-        <table>
+        <table className={TABLE}>
           <tbody>
             {[
               ['Arrows', 'Grow or shrink by 10px, along the group axis'],
@@ -292,10 +310,7 @@ export function Layout() {
 `}
         />
         <Source
-          blocks={[
-            { file: 'demos.tsx', region: 'split' },
-            { file: 'globals.css', region: 'separators', lang: 'css' },
-          ]}
+          blocks={[{ file: 'demos.tsx', region: 'split' }]}
           note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
         />
       </Section>
@@ -370,10 +385,7 @@ export function Navigator() {
 `}
         />
         <Source
-          blocks={[
-            { file: 'demos.tsx', region: 'collapsing' },
-            { file: 'globals.css', region: 'demo-chrome', lang: 'css' },
-          ]}
+          blocks={[{ file: 'demos.tsx', region: 'collapsing' }]}
           note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
         />
       </Section>
@@ -384,13 +396,13 @@ export function Navigator() {
         lead="A filling panel reflows its content on every frame of a fold. A pinned one sizes the content once, up front, and anchors it to the edge that is not moving — so the content holds still and the fold slides the panel edge across it. Toggle the pin off and watch the paragraph rewrap the whole way through."
       >
         <PinDemo />
-        <p className="note">
+        <p className="border-line-strong text-muted mt-4 max-w-[68ch] border-l-2 pl-3.5 text-pretty">
           Pin content that bleeds to its own edges: an editor, a document, a
           table. A block with its own border or rounded corners shows that edge
           jumping instead, which is why the paragraph here has no frame of its
           own.
         </p>
-        <p className="note">
+        <p className="border-line-strong text-muted mt-4 max-w-[68ch] border-l-2 pl-3.5 text-pretty">
           The anchor belongs to the fold, not to the left edge. Put the sized
           panel after the filling one and the pinned content holds to the start
           edge instead, so the same collapse reads the same way from the other
@@ -467,7 +479,7 @@ export function Ide() {
 }
 `}
         />
-        <p className="note">
+        <p className="border-line-strong text-muted mt-4 max-w-[68ch] border-l-2 pl-3.5 text-pretty">
           Depth is not limited. Below, a horizontal split lives in the top panel
           of a vertical split, which lives in the filling panel of the outer
           row. Both crossings resize both axes: files with terminal at the left
@@ -518,7 +530,6 @@ export function Workbench() {
           blocks={[
             { file: 'demos.tsx', region: 'nesting' },
             { file: 'demos.tsx', region: 'intersections' },
-            { file: 'globals.css', region: 'separators', lang: 'css' },
           ]}
           note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
         />
@@ -629,19 +640,14 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
 }
 `}
         />
-        <p className="note">
+        <p className="border-line-strong text-muted mt-4 max-w-[68ch] border-l-2 pl-3.5 text-pretty">
           <code>attach</code> reads the panel&apos;s place in the group — which
           side of the filling panel it sits on, and so which edge drags — and
           returns the detach. <code>sync</code> feeds it new options on every
           state change, the same call the React adapter makes in a layout
           effect. Everything else is state you already own.
         </p>
-        <Source
-          blocks={[
-            { file: 'core-demo.tsx', region: 'core' },
-            { file: 'globals.css', region: 'demo-panes', lang: 'css' },
-          ]}
-        />
+        <Source blocks={[{ file: 'core-demo.tsx', region: 'core' }]} />
       </Section>
 
       <Section
@@ -687,13 +693,13 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
       >
         {API.map((component) => (
           <div key={component.name}>
-            <h3>
-              <code>{component.name}</code>
+            <h3 className="mt-7 mb-1.5 font-mono text-[14px]">
+              {component.name}
             </h3>
             {component.note ? (
-              <p>{component.note}</p>
+              <p className={LEAD}>{component.note}</p>
             ) : (
-              <table className="props">
+              <table className={PROPS}>
                 <tbody>
                   {component.props.map(([name, type, description]) => (
                     <tr key={name}>
@@ -701,7 +707,7 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
                         <code>{name}</code>
                       </td>
                       <td>
-                        <code className="type">{type}</code>
+                        <code className="text-accent font-mono">{type}</code>
                       </td>
                       <td>{description}</td>
                     </tr>
@@ -711,13 +717,11 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
             )}
           </div>
         ))}
-        <h3>
-          <code>glidepanels</code>
-        </h3>
-        <p>
+        <h3 className="mt-7 mb-1.5 font-mono text-[14px]">glidepanels</h3>
+        <p className={LEAD}>
           The core, for an adapter or for plain DOM. Nothing here imports React.
         </p>
-        <table className="props">
+        <table className={PROPS}>
           <tbody>
             {CORE_API.map(([name, type, description]) => (
               <tr key={name}>
@@ -725,7 +729,7 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
                   <code>{name}</code>
                 </td>
                 <td>
-                  <code className="type">{type}</code>
+                  <code className="text-accent font-mono">{type}</code>
                 </td>
                 <td>{description}</td>
               </tr>

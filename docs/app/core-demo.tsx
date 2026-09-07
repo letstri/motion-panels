@@ -13,11 +13,16 @@ export const mountSplit = (root: HTMLElement) => {
   const grip = document.createElement('div')
   const fill = document.createElement('div')
 
-  content.className = 'card'
-  content.innerHTML =
-    '<div class="card-head"><span>Files</span><span class="badge">240px</span></div>'
-  fill.innerHTML =
-    '<div class="card"><div class="card-head"><span>Editor</span></div></div>'
+  const card =
+    'flex h-full w-full flex-col overflow-hidden rounded-[9px] border border-line bg-surface'
+  const head =
+    'flex h-8 flex-none items-center justify-between gap-2.5 whitespace-nowrap border-line border-b px-2.5 text-[12px] text-muted'
+  const badge =
+    'rounded-[5px] bg-sunken px-1.5 py-px font-mono text-[11px] text-text tabular-nums'
+
+  content.className = card
+  content.innerHTML = `<div class="${head}"><span>Files</span><span class="${badge}">240px</span></div>`
+  fill.innerHTML = `<div class="${card}"><div class="${head}"><span>Editor</span></div></div>`
   fill.setAttribute(FILL_ATTRIBUTE, '')
 
   Object.assign(root.style, {
@@ -38,11 +43,14 @@ export const mountSplit = (root: HTMLElement) => {
   Object.assign(fill.style, { flex: '1', minWidth: '0', padding: '3px' })
   Object.assign(grip.style, {
     insetBlock: '0',
-    insetInlineEnd: '0',
+    insetInlineEnd: '-7px',
     position: 'absolute',
     touchAction: 'none',
+    width: '14px',
   })
 
+  grip.className =
+    "z-10 flex items-center justify-center outline-none after:h-[calc(100%-20px)] after:w-0.5 after:rounded-full after:bg-line-strong after:transition-colors after:duration-150 after:content-[''] hover:after:bg-muted focus-visible:after:bg-muted active:after:bg-accent data-resizing:after:bg-accent"
   grip.role = 'separator'
   grip.tabIndex = 0
   grip.ariaLabel = 'Resize files'
@@ -64,13 +72,13 @@ export const mountSplit = (root: HTMLElement) => {
   const controller = createPanel(group, { ...base, size })
   const detach = controller.attach(panel)
 
-  const badge = content.querySelector('.badge')
+  const label = content.querySelector('span:last-child')
   const stopSize = controller.motion.size.on('change', (value) => {
     const width = Math.max(0, value)
     panel.style.width = `${width}px`
     grip.ariaValueNow = String(controller.target)
-    if (badge) {
-      badge.textContent = `${Math.round(width)}px`
+    if (label) {
+      label.textContent = `${Math.round(width)}px`
     }
   })
   const stopContent = controller.motion.content.on('change', (value) => {
@@ -129,8 +137,8 @@ export const CoreDemo = () => {
   }, [])
 
   return (
-    <figure className="demo">
-      <div className="stage">
+    <figure className="mt-5 flex flex-col gap-2.5">
+      <div className="border-line bg-sunken h-[300px] rounded-[14px] border p-2.5">
         <div ref={stageRef} style={{ height: '100%' }} />
       </div>
     </figure>

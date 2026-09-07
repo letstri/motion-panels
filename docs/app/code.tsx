@@ -48,6 +48,11 @@ export const Code = async ({
         : [],
   })
 
-  // oxlint-disable-next-line react/no-danger -- shiki renders the markup
-  return <div className="code" dangerouslySetInnerHTML={{ __html: html }} />
+  return (
+    <div
+      // oxlint-disable-next-line react/no-danger -- shiki renders the markup
+      dangerouslySetInnerHTML={{ __html: html }}
+      className="[&_pre]:border-line mt-5 font-mono text-[13px] [&_pre]:m-0 [&_pre]:overflow-x-auto [&_pre]:rounded-[10px] [&_pre]:border [&_pre]:px-[18px] [&_pre]:py-4 [&_pre]:leading-[1.6]"
+    />
+  )
 }

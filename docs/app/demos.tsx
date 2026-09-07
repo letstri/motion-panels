@@ -5,6 +5,37 @@ import type { ComponentProps, ReactNode } from 'react'
 import { useState } from 'react'
 
 // #region helpers
+const STAGE = 'h-[300px] rounded-[14px] border border-line bg-sunken p-2.5'
+
+const CARD =
+  'flex h-full w-full flex-col overflow-hidden rounded-[9px] border border-line bg-surface'
+
+const CARD_HEAD =
+  'flex h-8 flex-none items-center justify-between gap-2.5 whitespace-nowrap border-line border-b px-2.5 text-[12px] text-muted'
+
+const BADGE =
+  'rounded-[5px] bg-sunken px-1.5 py-px font-mono text-[11px] text-text tabular-nums'
+
+const ROW =
+  'flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap rounded-md px-2 py-[3px] text-[12px] text-muted before:size-1.5 before:flex-none before:rounded-sm before:bg-line-strong data-active:bg-sunken data-active:text-text'
+
+const LINE =
+  'flex gap-3 whitespace-pre px-3 font-mono text-[12px] text-muted leading-[1.75]'
+
+const LINE_NUMBER =
+  'before:min-w-3.5 before:flex-none before:text-right before:text-line-strong before:[counter-increment:line] before:content-[counter(line)]'
+
+const BUTTON =
+  'cursor-pointer rounded-[7px] border border-transparent px-2.5 py-[3px] text-[13px] text-muted hover:text-text aria-pressed:bg-surface aria-pressed:text-text aria-pressed:shadow-pressed'
+
+const CONTROL = `${BUTTON} border-line bg-surface`
+
+// The package renders its own edge grip inside a panel that has no Separator;
+// that one is a hit area and stays unstyled, which is why the line lives here
+// rather than on [role='separator'] globally.
+const SEPARATOR =
+  "z-10 flex items-center justify-center outline-none after:rounded-full after:bg-line-strong after:transition-colors after:duration-150 after:content-[''] hover:after:bg-muted focus-visible:after:bg-muted active:after:bg-accent aria-[orientation=vertical]:-mx-[7px] aria-[orientation=horizontal]:-my-[7px] aria-[orientation=horizontal]:h-3.5 aria-[orientation=vertical]:w-3.5 aria-[orientation=horizontal]:after:h-0.5 aria-[orientation=horizontal]:after:w-[calc(100%-20px)] aria-[orientation=vertical]:after:h-[calc(100%-20px)] aria-[orientation=vertical]:after:w-0.5 data-crossing:after:bg-muted data-resizing:after:bg-accent"
+
 const Pane = ({ style, ...props }: ComponentProps<typeof Panel>) => (
   <Panel style={{ padding: 3, ...style }} {...props} />
 )
@@ -18,10 +49,10 @@ const Card = ({
   label: string
   size?: string
 }) => (
-  <div className="card">
-    <div className="card-head">
+  <div className={CARD}>
+    <div className={CARD_HEAD}>
       <span>{label}</span>
-      {size ? <span className="badge">{size}</span> : null}
+      {size ? <span className={BADGE}>{size}</span> : null}
     </div>
     {children}
   </div>
@@ -31,9 +62,9 @@ const px = (size: number, collapsed?: boolean) =>
   collapsed ? 'collapsed' : `${size}px`
 
 const Rows = ({ active, items }: { active?: string; items: string[] }) => (
-  <ul className="rows">
+  <ul className="list-none overflow-hidden p-2">
     {items.map((item) => (
-      <li key={item} data-active={item === active || undefined}>
+      <li className={ROW} key={item} data-active={item === active || undefined}>
         {item}
       </li>
     ))}
@@ -47,9 +78,11 @@ const Lines = ({
   lines: string[]
   terminal?: boolean
 }) => (
-  <ol className={terminal ? 'lines terminal' : 'lines'}>
+  <ol className="list-none overflow-hidden py-2.5 [counter-reset:line]">
     {lines.map((line) => (
-      <li key={line}>{line}</li>
+      <li className={terminal ? LINE : `${LINE} ${LINE_NUMBER}`} key={line}>
+        {line}
+      </li>
     ))}
   </ol>
 )
@@ -88,9 +121,11 @@ const Demo = ({
   controls?: ReactNode
   tall?: boolean
 }) => (
-  <figure className="demo">
-    {controls ? <div className="controls">{controls}</div> : null}
-    <div className={tall ? 'stage tall' : 'stage'}>{children}</div>
+  <figure className="mt-5 flex flex-col gap-2.5">
+    {controls ? (
+      <div className="flex items-center gap-2">{controls}</div>
+    ) : null}
+    <div className={tall ? `${STAGE} h-[360px]` : STAGE}>{children}</div>
   </figure>
 )
 // #endregion
@@ -113,7 +148,9 @@ const Split = ({ separator }: { separator?: boolean }) => {
             <Rows items={FILES} active="panel.tsx" />
           </Card>
         </Pane>
-        {separator ? <Separator aria-label="Resize files" /> : null}
+        {separator ? (
+          <Separator className={SEPARATOR} aria-label="Resize files" />
+        ) : null}
         <Pane>
           <Editor />
         </Pane>
@@ -137,7 +174,7 @@ export const VerticalDemo = () => {
         <Pane>
           <Editor />
         </Pane>
-        <Separator aria-label="Resize output" />
+        <Separator className={SEPARATOR} aria-label="Resize output" />
         <Pane
           size={height}
           defaultSize={120}
@@ -200,11 +237,12 @@ export const FoldDemo = () => {
       <Demo
         controls={
           <>
-            <div className="segmented">
+            <div className="border-line bg-sunken flex gap-0.5 rounded-[9px] border p-0.5">
               {Object.keys(FOLDS).map((name) => (
                 <button
                   key={name}
                   type="button"
+                  className={BUTTON}
                   aria-pressed={name === fold}
                   onClick={() => setFold(name as Fold)}
                 >
@@ -214,7 +252,7 @@ export const FoldDemo = () => {
             </div>
             <button
               type="button"
-              className="push"
+              className={`${CONTROL} ml-auto`}
               onClick={() => setCollapsed(!collapsed)}
             >
               {collapsed ? 'Expand' : 'Collapse'}
@@ -238,13 +276,13 @@ export const FoldDemo = () => {
               <Rows items={SYMBOLS} active="Panel" />
             </Card>
           </Pane>
-          <Separator aria-label="Resize navigator" />
+          <Separator className={SEPARATOR} aria-label="Resize navigator" />
           <Pane>
             <Editor />
           </Pane>
         </Group>
       </Demo>
-      <pre className="echo">
+      <pre className="border-line bg-sunken text-muted m-0 overflow-x-auto rounded-[9px] border px-3.5 py-3 font-mono text-[13px]">
         {`<Panel${Object.entries(FOLDS[fold])
           .map(([prop, value]) => `\n  ${prop}={${formatProp(value)}}`)
           .join('')}\n/>`}
@@ -280,7 +318,9 @@ const PinSplit = ({ end }: { end?: boolean }) => {
   )
   const article = (
     <Panel pin={pinned}>
-      <p className="prose">{PIN_TEXT}</p>
+      <p className="text-muted overflow-hidden px-4 py-3 text-[13px] leading-[1.7]">
+        {PIN_TEXT}
+      </p>
     </Panel>
   )
 
@@ -290,6 +330,7 @@ const PinSplit = ({ end }: { end?: boolean }) => {
         <>
           <button
             type="button"
+            className={CONTROL}
             aria-pressed={pinned}
             onClick={() => setPinned(!pinned)}
           >
@@ -297,7 +338,7 @@ const PinSplit = ({ end }: { end?: boolean }) => {
           </button>
           <button
             type="button"
-            className="push"
+            className={`${CONTROL} ml-auto`}
             onClick={() => setCollapsed(!collapsed)}
           >
             {collapsed ? 'Expand' : 'Collapse'}
@@ -307,7 +348,7 @@ const PinSplit = ({ end }: { end?: boolean }) => {
     >
       <Group orientation="horizontal">
         {end ? article : sidebar}
-        <Separator aria-label="Resize sidebar" />
+        <Separator className={SEPARATOR} aria-label="Resize sidebar" />
         {end ? sidebar : article}
       </Group>
     </Demo>
@@ -338,13 +379,13 @@ export const NestedDemo = () => {
             <Rows items={FILES} active="panel.tsx" />
           </Card>
         </Pane>
-        <Separator aria-label="Resize files" />
+        <Separator className={SEPARATOR} aria-label="Resize files" />
         <Panel>
           <Group orientation="vertical">
             <Pane>
               <Editor />
             </Pane>
-            <Separator aria-label="Resize console" />
+            <Separator className={SEPARATOR} aria-label="Resize console" />
             <Pane
               size={terminal}
               defaultSize={100}
@@ -423,7 +464,7 @@ export const DeepNestDemo = () => {
             <Rows items={FILES} active="separator.tsx" />
           </Card>
         </Pane>
-        <Separator aria-label="Resize files" />
+        <Separator className={SEPARATOR} aria-label="Resize files" />
         <Panel>
           <Group orientation="vertical">
             <Panel>
@@ -431,7 +472,7 @@ export const DeepNestDemo = () => {
                 <Pane>
                   <Editor />
                 </Pane>
-                <Separator aria-label="Resize outline" />
+                <Separator className={SEPARATOR} aria-label="Resize outline" />
                 <Pane
                   size={outline}
                   defaultSize={120}
@@ -445,7 +486,7 @@ export const DeepNestDemo = () => {
                 </Pane>
               </Group>
             </Panel>
-            <Separator aria-label="Resize terminal" />
+            <Separator className={SEPARATOR} aria-label="Resize terminal" />
             <Pane
               size={terminal}
               defaultSize={90}
