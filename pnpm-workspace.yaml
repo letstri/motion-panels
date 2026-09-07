@@ -1,4 +1,4 @@
 shellEmulator: true
 packages:
-  - glidepanels
+  - motion-panels
   - docs

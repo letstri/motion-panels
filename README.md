@@ -1,1 +1,1 @@
-glidepanels/README.md
+motion-panels/README.md

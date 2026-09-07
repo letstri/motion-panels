@@ -1,21 +1,28 @@
 {
-  "name": "glidepanels-docs",
+  "name": "motion-panels-docs",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --port 3200",
-    "build": "next build",
+    "dev": "pnpm --filter motion-panels run build && next dev --port 3200",
+    "build": "pnpm --filter motion-panels run build && next build",
     "start": "next start --port 3200",
     "check-types": "tsc"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
+    "@remixicon/react": "^4.9.0",
     "@shikijs/twoslash": "^3.23.0",
-    "glidepanels": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "cn": "^0.2.6",
     "motion": "^13.2.0",
+    "motion-panels": "workspace:*",
     "next": "^16.3.4",
+    "next-themes": "^0.4.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "shadcn": "^4.21.0",
     "shiki": "^3.23.0",
+    "tw-animate-css": "^1.4.0",
     "twoslash": "^0.3.6"
   },
   "devDependencies": {

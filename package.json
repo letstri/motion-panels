@@ -1,17 +1,17 @@
 {
-  "name": "glidepanels-monorepo",
+  "name": "motion-panels-monorepo",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "cd glidepanels && pnpm run build",
+    "build": "cd motion-panels && pnpm run build",
     "check-types": "turbo check-types",
-    "docs": "pnpm --filter glidepanels-docs run dev",
+    "docs": "pnpm --filter motion-panels-docs run dev",
     "format": "oxfmt --config ./oxfmt.config.ts --ignore-path .gitignore .",
     "format:check": "oxfmt --config ./oxfmt.config.ts --ignore-path .gitignore --check .",
     "lint": "oxlint --type-aware --config ./oxlint.config.ts --ignore-path .gitignore --deny-warnings .",
     "lint:fix": "oxlint --type-aware --config ./oxlint.config.ts --ignore-path .gitignore --fix --deny-warnings .",
-    "publish": "cd glidepanels && pnpm publish",
-    "test": "cd glidepanels && pnpm run test",
+    "publish": "cd motion-panels && pnpm publish",
+    "test": "cd motion-panels && pnpm run test",
     "update": "taze -r -I major"
   },
   "devDependencies": {

@@ -1,0 +1,8 @@
+export { BothEdgesDemo } from './both-edges'
+export { CoreDemo } from './core'
+export { FoldDemo } from './fold'
+export { HeroDemo } from './hero'
+export { DeepNestDemo, NestedDemo } from './nested'
+export { PinDemo } from './pin'
+export { HorizontalDemo, SeparatorDemo } from './split'
+export { VerticalDemo } from './vertical'
