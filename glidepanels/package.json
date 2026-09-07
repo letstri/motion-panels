@@ -30,6 +30,7 @@
   },
   "funding": "https://github.com/sponsors/letstri",
   "files": [
+    "LICENSE",
     "dist"
   ],
   "type": "module",
