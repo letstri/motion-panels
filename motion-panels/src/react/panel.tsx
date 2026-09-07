@@ -16,11 +16,11 @@ import { Separator } from './separator'
 
 export type SizedPanelProps = HTMLMotionProps<'div'> & {
   collapsed?: boolean
-  defaultSize?: number
   maxSize?: number
   minSize?: number
   onCollapsedChange?: (collapsed: boolean) => void
   onSizeChange?: (size: number) => void
+  resetSize?: number
   size: number
   transition?: Transition
 }
@@ -89,13 +89,13 @@ const FillPanel = ({ pin, style, transition, ...props }: FillPanelProps) => {
 
 const SizedPanel = ({
   collapsed,
-  defaultSize,
   exit,
   initial,
   maxSize,
   minSize,
   onCollapsedChange,
   onSizeChange,
+  resetSize,
   size,
   style,
   transition,
@@ -106,11 +106,11 @@ const SizedPanel = ({
   const elementRef = useRef<HTMLDivElement>(null)
   const options: PanelOptions = {
     collapsed,
-    defaultSize,
     maxSize,
     minSize,
     onCollapsedChange,
     onSizeChange,
+    resetSize,
     size,
     transition,
   }
@@ -118,10 +118,7 @@ const SizedPanel = ({
   const [panel] = useState(() => createPanel(group, options))
   const state = usePanelState(panel)
   const edge = useEdgeSize()
-  // subscribed only so a preference flip re-renders into `timing`
   useReducedMotion()
-  // Written straight to width and margin on purpose: a custom property on the
-  // panel would invalidate style for every descendant on each drag frame.
   const rendered = useTransform(panel.motion.size, (value) =>
     Math.max(0, value)
   )

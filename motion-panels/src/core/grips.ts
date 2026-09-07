@@ -80,8 +80,6 @@ export const grips = {
         signal,
       })
     }
-    // Every grip moves when any panel resizes or folds, and that happens
-    // without a scroll or a resize, so the cache has to follow the sizes too.
     const stop = controller.motion.size.on('change', invalidate)
 
     return () => {

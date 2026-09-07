@@ -24,13 +24,7 @@ export const VerticalDemo = () => {
           <Editor />
         </Pane>
         <Separator className={SEPARATOR} aria-label="Resize output" />
-        <Pane
-          size={height}
-          defaultSize={120}
-          minSize={80}
-          maxSize={220}
-          onSizeChange={setHeight}
-        >
+        <Pane size={height} minSize={80} maxSize={220} onSizeChange={setHeight}>
           <Card label="Output" size={px(height)}>
             <Lines lines={OUTPUT} terminal />
           </Card>

@@ -35,7 +35,6 @@ const mountSplit = (root: HTMLElement) => {
     position: 'relative',
     width: '240px',
   })
-  // Padding rides on the content box, as the adapter does it: 240px stays 240.
   Object.assign(content.style, {
     flexShrink: '0',
     height: '100%',
@@ -60,7 +59,6 @@ const mountSplit = (root: HTMLElement) => {
 
   let size = 240
   const base = {
-    defaultSize: 240,
     maxSize: 420,
     minSize: 160,
     onSizeChange: (next: number) => {
@@ -113,7 +111,6 @@ const mountSplit = (root: HTMLElement) => {
   }
   const onKeyDown = (event: KeyboardEvent) => controller.resizeByKey(event)
   const onDoubleClick = () => {
-    // a press that dragged must not double-click into a reset
     if (!dragged) {
       controller.reset()
     }

@@ -11,13 +11,7 @@ const Split = ({ separator }: { separator?: boolean }) => {
   return (
     <Demo>
       <Group orientation="horizontal">
-        <Pane
-          size={width}
-          defaultSize={240}
-          minSize={160}
-          maxSize={420}
-          onSizeChange={setWidth}
-        >
+        <Pane size={width} minSize={160} maxSize={420} onSizeChange={setWidth}>
           <Card label="Files" size={px(width)}>
             <Rows items={FILES} active="panel.tsx" />
           </Card>

@@ -70,7 +70,6 @@ export const FoldDemo = () => {
         <Pane
           {...FOLDS[fold]}
           size={width}
-          defaultSize={260}
           minSize={180}
           maxSize={400}
           collapsed={collapsed}

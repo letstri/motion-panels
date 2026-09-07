@@ -37,7 +37,6 @@ describe('grips', () => {
 
     expect(grips.at({ clientX: 5, clientY: 5 })).toHaveLength(2)
 
-    // The grip follows its panel, and nothing scrolls or resizes on the way.
     left = 500
     moving.motion.size.jump(300)
 

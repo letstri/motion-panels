@@ -42,7 +42,6 @@ export const PinDemo = () => {
       <Group orientation="horizontal">
         <Pane
           size={width}
-          defaultSize={240}
           minSize={160}
           maxSize={420}
           collapsed={collapsed}

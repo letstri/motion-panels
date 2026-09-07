@@ -20,7 +20,6 @@ import { createPanel, createPanelGroup, FILL_ATTRIBUTE } from 'motion-panels'
 export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElement, grip: HTMLElement) {
   const group = createPanelGroup('horizontal')
 
-  // The core owns numbers, not nodes: the group root is yours to lay out.
   Object.assign(root.style, { display: 'flex', flexDirection: group.axes.direction, overflow: 'clip' })
   fill.setAttribute(FILL_ATTRIBUTE, '')
 
@@ -37,7 +36,6 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
   const controller = createPanel(group, { ...base, size })
   const detach = controller.attach(panel)
 
-  // One motion value drives the panel; clamp the overshoot the way you like.
   controller.motion.size.on('change', (value) => {
     panel.style.width = \`\${Math.max(0, value)}px\`
   })
@@ -129,34 +127,25 @@ import { grips } from 'motion-panels'
 export function wireExtras(controller: PanelController, options: PanelOptions, content: HTMLElement, grip: HTMLElement, toggle: HTMLElement) {
   let collapsed = false
 
-  // Collapsing is not a separate mode: a fold is the target moving to zero, so
-  // sync it like any other option change and the animation follows.
   toggle.addEventListener('click', () => {
     collapsed = !collapsed
     controller.sync({ ...options, collapsed })
   })
 
-  // Bind the second motion value and the content keeps its own width the whole
-  // way down, so nothing inside it rewraps on a frame of the fold.
   controller.motion.content.on('change', (value) => {
     content.style.width = \`\${value}px\`
   })
 
-  // Everything the React adapter puts on data attributes lives on state, which
-  // is frozen and replaced only when it changes.
   const stop = controller.subscribe(() => {
     grip.toggleAttribute('data-resizing', controller.state.dragging)
   })
 
-  // Register every grip once. The registry caches rects and drops them on
-  // resize and scroll, so hit testing mid-drag costs nothing.
   const unregister = grips.register(grip, controller)
 
   grip.addEventListener('pointerdown', (event) => {
     grips.invalidate()
     const crossed = grips.at(event)
     const partners = grips.partners(crossed, grip)
-    // Both separators of a crossing move together, so say so with the cursor.
     const cursor = partners.length > 0 ? 'move' : undefined
 
     grips.mark('held', crossed)
@@ -164,7 +153,6 @@ export function wireExtras(controller: PanelController, options: PanelOptions, c
     for (const partner of partners) {
       partner.drag.start(cursor)
     }
-    // Hand every partner the same offsets in move, and end them together.
   })
 
   return () => {

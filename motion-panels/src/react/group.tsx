@@ -1,66 +1,60 @@
 import type { Transition } from 'motion/react'
 import { animate } from 'motion/react'
-import type { ComponentProps, ReactNode, RefObject } from 'react'
-import { Component, useContext, useMemo, useRef } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
+import { isValidElement, useContext, useMemo, useRef } from 'react'
 
 import type { Orientation } from '../core'
 import { createPanelGroup, FILL_ATTRIBUTE, SEPARATOR_ATTRIBUTE } from '../core'
 import { timing } from '../core/panel'
-import { GroupContext } from './internal'
+import { GroupContext, useIsomorphicLayoutEffect } from './internal'
 
 export type GroupProps = ComponentProps<'div'> & {
-  layoutDependency?: unknown
   orientation?: Orientation
   transition?: Transition
 }
 
-interface FlipProps {
-  children: ReactNode
-  dependency: unknown
-  edge: 'left' | 'top'
-  point: 'x' | 'y'
-  root: RefObject<HTMLDivElement | null>
-  transition?: Transition
-}
+const keysOf = (children: ReactNode) =>
+  String([children].flat().map((child) => isValidElement(child) && child.key))
 
-// First-last-invert-play for the group's own children, only on the renders
-// where `dependency` changed. A class, because getSnapshotBeforeUpdate is the
-// one place React lets you measure the old boxes: after render, before the DOM
-// moves. Motion's own layout projection cannot be used here — it claims the
-// width it measures, and every panel already drives width from a motion value.
-// oxlint-disable-next-line react/prefer-function-component -- getSnapshotBeforeUpdate has no hook form
-class Flip extends Component<FlipProps> {
-  getSnapshotBeforeUpdate(previous: FlipProps) {
-    const { dependency, edge, root } = this.props
-    if (previous.dependency === dependency || !root.current) {
-      return null
-    }
+export const Group = ({
+  children,
+  orientation = 'horizontal',
+  style,
+  transition,
+  ...props
+}: GroupProps) => {
+  const parent = useContext(GroupContext)
+  const group = useMemo(() => createPanelGroup(orientation), [orientation])
+  const root = useRef<HTMLDivElement>(null)
+  const { direction, point } = group.axes
+  const edge = point === 'x' ? 'left' : 'top'
 
-    return new Map(
+  const keys = keysOf(children)
+  const last = useRef(keys)
+  const before = useRef<Map<Element, number> | null>(null)
+  /* oxlint-disable react/refs -- getSnapshotBeforeUpdate has no hook form */
+  if (keys !== last.current && root.current) {
+    last.current = keys
+    before.current = new Map(
       [...root.current.children].map(
         (child) => [child, child.getBoundingClientRect()[edge]] as const
       )
     )
   }
+  /* oxlint-enable react/refs */
 
-  componentDidUpdate(
-    _previous: FlipProps,
-    _state: unknown,
-    before: Map<Element, number> | null
-  ) {
-    if (!before) {
-      return
-    }
-    const { edge, point, transition } = this.props
-    for (const [child, from] of before) {
-      // Widths animate from the next frame on, so the box measured here still
-      // carries the old size: the delta is the reorder alone.
+  useIsomorphicLayoutEffect(() => {
+    const boxes = before.current
+    before.current = null
+    for (const [child, from] of boxes ?? []) {
       const delta = from - child.getBoundingClientRect()[edge]
-      if (delta === 0 || !(child instanceof HTMLElement)) {
+      if (
+        delta === 0 ||
+        !child.isConnected ||
+        !(child instanceof HTMLElement)
+      ) {
         continue
       }
-      // A docked panel in flight passes over the fill, never under it, so the
-      // trip reads the same whichever way it goes. The fill is the ground.
       const lift =
         !child.hasAttribute(FILL_ATTRIBUTE) &&
         !child.hasAttribute(SEPARATOR_ATTRIBUTE)
@@ -80,25 +74,7 @@ class Flip extends Component<FlipProps> {
         }
       )
     }
-  }
-
-  render(): ReactNode {
-    return this.props.children
-  }
-}
-
-export const Group = ({
-  children,
-  layoutDependency,
-  orientation = 'horizontal',
-  style,
-  transition,
-  ...props
-}: GroupProps) => {
-  const parent = useContext(GroupContext)
-  const group = useMemo(() => createPanelGroup(orientation), [orientation])
-  const root = useRef<HTMLDivElement>(null)
-  const { direction, point } = group.axes
+  }, [edge, keys, point, transition])
 
   return (
     <GroupContext.Provider value={group}>
@@ -114,15 +90,7 @@ export const Group = ({
         }}
         {...props}
       >
-        <Flip
-          dependency={layoutDependency}
-          edge={point === 'x' ? 'left' : 'top'}
-          point={point}
-          root={root}
-          transition={transition}
-        >
-          {children}
-        </Flip>
+        {children}
       </div>
     </GroupContext.Provider>
   )

@@ -17,7 +17,7 @@ export const SeparatorSection = () => (
         ['Shift + arrows', 'The same, by 50px'],
         ['Home / End', 'Jump to minSize or maxSize'],
         ['Enter', 'Toggle collapsed (needs onCollapsedChange)'],
-        ['Double-click', 'Reset to defaultSize'],
+        ['Double-click', 'Reset to the size the panel mounted with'],
       ]}
     />
     <Code
@@ -31,7 +31,7 @@ import { Group, Panel, Separator } from 'motion-panels/react'
 export function Layout() {
   return (
     <Group>
-      <Panel size={240} defaultSize={240} minSize={160} maxSize={420}>
+      <Panel size={240} minSize={160} maxSize={420}>
         <FileTree />
       </Panel>
       <Separator />

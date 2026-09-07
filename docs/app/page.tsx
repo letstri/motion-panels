@@ -22,7 +22,6 @@ const DocsPage = () => (
       <div className="self-start min-[900px]:sticky min-[900px]:top-24">
         <SideNav />
       </div>
-      {/* Section numbers count off this reset, so they follow the order here. */}
       <main className="flex max-w-[900px] min-w-0 flex-col gap-14 [counter-reset:section]">
         <Install />
         <QuickStart />

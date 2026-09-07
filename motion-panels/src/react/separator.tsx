@@ -29,8 +29,6 @@ export const Separator = ({
   const dragged = useRef(false)
   const [side, setSide] = useState<Side>()
 
-  // No dependency list: the seam that owns a panel is the one it sits next to,
-  // and reordering the group moves this node without remounting it.
   useIsomorphicLayoutEffect(() => {
     if (!own) {
       setSide(hasFillAfter(slotRef.current) ? 'start' : 'end')
@@ -63,11 +61,8 @@ export const Separator = ({
   )
   const resizing = hit === 'held' || dragging
   const crossing = hit === 'crossed' && !resizing
-  // A grip is only ever marked when several meet at a point, so any mark —
-  // hovered or held through the drag — means this press moves both axes.
   const moving = hit !== null
 
-  // own panel first, then every partner the press crossed
   const each = (act: (target: PanelController) => void) => {
     for (const target of [panel, ...partners.current]) {
       if (target) {
@@ -84,9 +79,6 @@ export const Separator = ({
     [panel]
   )
 
-  // Rendered even before the panel resolves: side detection needs the DOM, so
-  // on the server there is no controller yet and a gated grip would pop in at
-  // hydration.
   const grip = (
     <motion.div
       ref={gripRef}
@@ -109,7 +101,6 @@ export const Separator = ({
       }}
       {...props}
       onDoubleClick={() => {
-        // a press that dragged must not double-click into a reset
         if (!dragged.current) {
           panel?.reset()
         }
@@ -156,8 +147,6 @@ export const Separator = ({
     />
   )
 
-  // The seam is a zero-extent box the grip overflows evenly on both sides, so
-  // any width the caller gives it straddles the boundary without a margin hack.
   const seam = {
     display: 'flex',
     flexDirection: axes.direction,

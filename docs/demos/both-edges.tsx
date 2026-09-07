@@ -12,13 +12,7 @@ export const BothEdgesDemo = () => {
   return (
     <Demo>
       <Group orientation="horizontal">
-        <Pane
-          size={left}
-          defaultSize={180}
-          minSize={120}
-          maxSize={300}
-          onSizeChange={setLeft}
-        >
+        <Pane size={left} minSize={120} maxSize={300} onSizeChange={setLeft}>
           <Card label="Files" size={px(left)}>
             <Rows items={FILES} active="index.tsx" />
           </Card>
@@ -26,13 +20,7 @@ export const BothEdgesDemo = () => {
         <Pane>
           <Editor />
         </Pane>
-        <Pane
-          size={right}
-          defaultSize={180}
-          minSize={120}
-          maxSize={300}
-          onSizeChange={setRight}
-        >
+        <Pane size={right} minSize={120} maxSize={300} onSizeChange={setRight}>
           <Card label="Outline" size={px(right)}>
             <Rows items={SYMBOLS} />
           </Card>

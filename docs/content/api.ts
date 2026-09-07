@@ -12,14 +12,9 @@ export const API: {
         'Axis the panels split on. Groups nest.',
       ],
       [
-        'layoutDependency',
-        'unknown',
-        'Set it to whatever decides the order of the children. Reordering them then animates instead of jumping.',
-      ],
-      [
         'transition',
         'Transition',
-        'Timing of the reorder trip. Defaults to the house curve.',
+        'Timing of the reorder trip: keyed children rendered in a new order travel there. Defaults to the house curve.',
       ],
     ],
   },
@@ -37,9 +32,9 @@ export const API: {
         'Called with the new size as a drag or key press lands.',
       ],
       [
-        'defaultSize',
+        'resetSize',
         'number',
-        'Size a double-click on the separator resets to.',
+        'Size a double-click on the separator resets to. Defaults to the size the panel mounted with.',
       ],
       [
         'minSize / maxSize',

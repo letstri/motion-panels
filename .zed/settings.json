@@ -1,0 +1,41 @@
+{
+  "formatter": "language_server",
+  "code_actions_on_format": {
+    "source.fixAll.oxc": true
+  },
+  "languages": {
+    "JavaScript": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
+    },
+    "JSX": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
+    },
+    "TypeScript": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
+    },
+    "TSX": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
+    },
+    "JSON": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
+    },
+    "JSONC": {
+      "language_servers": ["oxc", "..."],
+      "formatter": "language_server"
+    }
+  },
+  "lsp": {
+    "oxc": {
+      "settings": {
+        "config_path": "./oxlint.config.ts",
+        "fmt.config_path": "./oxfmt.config.ts",
+        "type_aware": true
+      }
+    }
+  }
+}

@@ -55,8 +55,6 @@ describe('createPanel', () => {
     expect(panel.state.end).toBe(true)
     expect(group.panels.get('start')).toBe(panel)
 
-    // the same node, moved past the fill panel the way React moves a reordered
-    // child: no remount, so only a later sync can notice
     element.parentElement?.append(element)
     panel.sync({ size: 200 })
     expect(panel.state.end).toBe(false)
@@ -97,7 +95,6 @@ describe('createPanel', () => {
     panel.drag.start()
     panel.drag.move({ x: 100, y: 0 })
     panel.drag.end()
-    // The host re-renders later; until then the panel folds back to 200.
     expect(panel.motion.size.isAnimating()).toBe(true)
 
     panel.sync({ ...options, size: 300 })
@@ -159,6 +156,42 @@ describe('createPanel', () => {
     expect(onSizeChange).toHaveBeenLastCalledWith(190)
   })
 
+  it('pages in the same direction as the arrows', () => {
+    const onSizeChange = vi.fn()
+    const leading = createPanel(createPanelGroup('horizontal'), {
+      onSizeChange,
+      size: 200,
+    })
+    leading.attach(mount())
+    leading.resizeByKey(key('PageDown'))
+    expect(onSizeChange).toHaveBeenLastCalledWith(250)
+
+    const trailing = createPanel(createPanelGroup('horizontal'), {
+      onSizeChange,
+      size: 200,
+    })
+    trailing.attach(mount({ fillFirst: true }))
+    trailing.resizeByKey(key('PageDown'))
+    expect(onSizeChange).toHaveBeenLastCalledWith(150)
+  })
+
+  it('resets to the mounted size, or to resetSize when given', () => {
+    const onSizeChange = vi.fn()
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      onSizeChange,
+      size: 200,
+    })
+    panel.attach(mount())
+
+    panel.sync({ onSizeChange, size: 320 })
+    panel.reset()
+    expect(onSizeChange).toHaveBeenLastCalledWith(200)
+
+    panel.sync({ onSizeChange, resetSize: 90, size: 320 })
+    panel.reset()
+    expect(onSizeChange).toHaveBeenLastCalledWith(90)
+  })
+
   it('unfolds to a size that changed while it was collapsed', () => {
     const options = {
       collapsed: true,
@@ -170,11 +203,40 @@ describe('createPanel', () => {
     panel.attach(mount())
 
     panel.sync({ ...options, size: 200 })
-    // the folded panel renders its content before the unfold reaches it
     expect(panel.motion.content.get()).toBe(200)
 
     panel.sync({ ...options, collapsed: false, size: 200 })
     expect(panel.motion.content.get()).toBe(200)
+  })
+
+  it('warns when the group cannot place a sized panel', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(noop)
+
+    createPanel(createPanelGroup('horizontal'), { size: 200 }).attach(mount())
+    expect(warn).not.toHaveBeenCalled()
+
+    document.body.innerHTML = ''
+    const parent = document.createElement('div')
+    const lone = document.createElement('div')
+    parent.append(lone)
+    document.body.append(parent)
+    createPanel(createPanelGroup('horizontal'), { size: 200 }).attach(lone)
+    expect(warn.mock.lastCall?.[0]).toContain('needs one filling panel')
+
+    document.body.innerHTML = ''
+    const crowd = document.createElement('div')
+    const first = document.createElement('div')
+    const second = document.createElement('div')
+    const fill = document.createElement('div')
+    fill.dataset.motionPanelsFill = ''
+    crowd.append(first, second, fill)
+    document.body.append(crowd)
+    const group = createPanelGroup('horizontal')
+    createPanel(group, { size: 200 }).attach(first)
+    createPanel(group, { size: 200 }).attach(second)
+    expect(warn.mock.lastCall?.[0]).toContain('sized panels sit on the "start"')
+
+    warn.mockRestore()
   })
 
   it('expands a collapsed panel from the keyboard', () => {

@@ -10,11 +10,13 @@
     "format:check": "oxfmt --config ./oxfmt.config.ts --ignore-path .gitignore --check .",
     "lint": "oxlint --type-aware --config ./oxlint.config.ts --ignore-path .gitignore --deny-warnings .",
     "lint:fix": "oxlint --type-aware --config ./oxlint.config.ts --ignore-path .gitignore --fix --deny-warnings .",
+    "prepare": "husky",
     "publish": "cd motion-panels && pnpm publish",
     "test": "cd motion-panels && pnpm run test",
     "update": "taze -r -I major"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "npm-run-all2": "^9.0.3",
     "oxfmt": "^0.66.0",
     "oxlint": "^1.81.0",

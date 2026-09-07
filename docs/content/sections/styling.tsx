@@ -13,7 +13,7 @@ export const Styling = () => (
       lang="css"
       code={`
 [role='separator'][aria-orientation='vertical'] {
-  width: 14px; /* straddles the seam on its own */
+  width: 14px;
 }
 
 [role='separator']::after {
@@ -31,7 +31,6 @@ export const Styling = () => (
   background: var(--primary);
 }
 
-/* the edge grip a panel renders for itself: hit area only */
 [role='separator'][data-motion-panels-edge]::after {
   display: none;
 }

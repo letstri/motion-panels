@@ -15,8 +15,6 @@ export const ThemeToggle = () => {
       variant="ghost"
       onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
     >
-      {/* Both glyphs: the server cannot know the scheme, and gating on a
-          mount effect would paint an empty button first. */}
       <RiMoonLine className="dark:hidden" />
       <RiSunLine className="hidden dark:block" />
     </Button>

@@ -22,8 +22,6 @@ const LINE =
 const LINE_NUMBER =
   'before:min-w-3.5 before:flex-none before:text-right before:text-muted-foreground/50 before:[counter-increment:line] before:content-[counter(line)]'
 
-// Per Separator rather than global CSS: a panel with no Separator renders its
-// own edge grip, and that one is a hit area that must stay invisible.
 export const SEPARATOR =
   "z-10 flex items-center justify-center rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 after:bg-muted-foreground/45 after:opacity-0 after:transition after:duration-150 after:content-[''] hover:after:bg-muted-foreground hover:after:opacity-100 focus-visible:after:bg-foreground focus-visible:after:opacity-100 active:after:bg-foreground aria-[orientation=horizontal]:h-3.5 aria-[orientation=vertical]:w-3.5 aria-[orientation=horizontal]:after:h-0.5 aria-[orientation=horizontal]:after:w-[calc(100%-20px)] aria-[orientation=vertical]:after:h-[calc(100%-20px)] aria-[orientation=vertical]:after:w-0.5 data-crossing:after:bg-muted-foreground data-crossing:after:opacity-100 data-resizing:after:bg-foreground data-resizing:after:opacity-100"
 
@@ -121,8 +119,6 @@ export const FOLDS = {
     animate: { scale: 1 },
     initial: { scale: 0.85 },
   },
-  // No translate on the fold axis: the panel already carries its content with
-  // the closing edge, so a slide moves the card twice as fast and tears a gap.
   flip: {
     animate: { rotateY: 0, transformPerspective: 500 },
     initial: { rotateY: -75, transformPerspective: 500 },

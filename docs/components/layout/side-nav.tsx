@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react'
 
-// The nav's own copy of the order, so it stays a plain client component.
-// Keep it in step with the sections listed in app/page.tsx.
 const GROUPS = [
   {
     items: [
@@ -40,8 +38,6 @@ const GROUPS = [
 
 const SECTIONS = GROUPS.flatMap((group) => group.items)
 
-// The heading that last crossed the top of the viewport wins, which an
-// observer cannot report: it fires per section, not per scroll.
 const useActiveSection = () => {
   const [active, setActive] = useState(SECTIONS[0].id)
 

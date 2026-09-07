@@ -2,7 +2,7 @@ import type { MotionValue, Transition } from 'motion'
 import { animate, motionValue } from 'motion'
 
 import type { Side } from './axes'
-import { hasFillAfter, isRtl, isSeparator } from './dom'
+import { FILL_ATTRIBUTE, hasFillAfter, isRtl, isSeparator } from './dom'
 import { clamp, emitter, reducedMotion } from './env'
 import type { PanelGroup } from './group'
 
@@ -13,8 +13,6 @@ export const TRANSITION: Transition = {
 
 const INSTANT: Transition = { duration: 0 }
 
-// A transition the preference can flatten: pass one to honour a caller's own
-// timing, omit it where the house curve is the only right answer.
 export const timing = (transition?: Transition): Transition =>
   reducedMotion.get() ? INSTANT : (transition ?? TRANSITION)
 
@@ -23,11 +21,11 @@ const KEY_STEP_FAST = 50
 
 export interface PanelOptions {
   collapsed?: boolean
-  defaultSize?: number
   maxSize?: number
   minSize?: number
   onCollapsedChange?: (collapsed: boolean) => void
   onSizeChange?: (size: number) => void
+  resetSize?: number
   size: number
   transition?: Transition
 }
@@ -71,7 +69,6 @@ export interface PanelController {
   target: number
 }
 
-// Freezes selection and the cursor for a drag; Escape cancels it. Returns the undo.
 const lockBody = (cursor: string, onEscape: () => void) => {
   const { style } = document.body
   const previous = {
@@ -91,6 +88,34 @@ const lockBody = (cursor: string, onEscape: () => void) => {
   return () => {
     Object.assign(style, previous)
     removeEventListener('keydown', onKeyDown, true)
+  }
+}
+
+const DEV =
+  typeof process === 'undefined' || process.env.NODE_ENV !== 'production'
+
+/** Counts the sized panels either side of the fill: every direct child of the
+ * group that is neither the filling panel nor a separator. */
+const warnPlacement = (element: HTMLElement, side: Side) => {
+  if (!DEV) {
+    return
+  }
+  const siblings = [...(element.parentElement?.children ?? [])]
+  const fill = siblings.findIndex((node) => node.hasAttribute(FILL_ATTRIBUTE))
+  if (fill === -1) {
+    console.warn(
+      'Motion Panels: a group needs one filling panel (a Panel with no size) so sized panels can tell which edge they resize.'
+    )
+
+    return
+  }
+  const half =
+    side === 'start' ? siblings.slice(0, fill) : siblings.slice(fill + 1)
+  const sized = half.filter((node) => !isSeparator(node))
+  if (sized.length > 1) {
+    console.warn(
+      `Motion Panels: ${sized.length} sized panels sit on the "${side}" side of the filling panel. A group holds at most one on each side \u2014 nest a group instead.`
+    )
   }
 }
 
@@ -132,7 +157,6 @@ export const createPanel = (
     notify()
   }
 
-  // what the container leaves once every other panel has its target
   const spare = () => {
     let free = element?.parentElement?.[axes.offset] ?? 0
     for (const panel of panels.values()) {
@@ -144,7 +168,6 @@ export const createPanel = (
     return free
   }
 
-  // +1 when the panel grows towards the pointer, -1 when it grows away
   const sign = () =>
     (state.end ? 1 : -1) * (axes.point === 'x' && isRtl(element) ? -1 : 1)
 
@@ -278,8 +301,8 @@ export const createPanel = (
     const moves: Record<string, number> = {
       End: max,
       Home: min,
-      PageDown: target + KEY_STEP_FAST,
-      PageUp: target - KEY_STEP_FAST,
+      PageDown: target + step,
+      PageUp: target - step,
       [axes.grow]: target + step,
       [axes.shrink]: target - step,
     }
@@ -303,9 +326,6 @@ export const createPanel = (
     }
   }
 
-  // Which side of the filling panel this one sits on is read from the DOM on
-  // every render, not once on mount: reordering the group moves the node
-  // without remounting the component, and the fold anchors on the answer.
   const place = () => {
     if (!element) {
       return
@@ -313,6 +333,7 @@ export const createPanel = (
     const end = hasFillAfter(element)
     const side: Side = end ? 'start' : 'end'
     if (panels.get(side) !== controller) {
+      warnPlacement(element, side)
       unplace()
       panels.set(side, controller)
       group.notify()
@@ -326,8 +347,6 @@ export const createPanel = (
   const sync = (next: PanelOptions) => {
     options = next
     place()
-    // folded flat: the content keeps the size it will unfold to, which the
-    // fold itself never gets to read when only the size prop moved
     if (size.get() === 0 && !state.dragging) {
       content.jump(next.size)
     }
@@ -376,13 +395,10 @@ export const createPanel = (
       return options
     },
     reset: () => {
-      if (options.defaultSize === undefined) {
-        return
-      }
       if (options.collapsed) {
         options.onCollapsedChange?.(false)
       }
-      options.onSizeChange?.(options.defaultSize)
+      options.onSizeChange?.(options.resetSize ?? initial.size)
     },
     resizeByKey,
     get state() {

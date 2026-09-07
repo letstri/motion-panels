@@ -2,3 +2,5 @@ shellEmulator: true
 packages:
   - motion-panels
   - docs
+allowBuilds:
+  esbuild: false

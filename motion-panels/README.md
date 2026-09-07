@@ -20,13 +20,7 @@ function Layout() {
 
   return (
     <Group orientation="horizontal">
-      <Panel
-        defaultSize={280}
-        minSize={200}
-        maxSize={480}
-        size={size}
-        onSizeChange={setSize}
-      >
+      <Panel minSize={200} maxSize={480} size={size} onSizeChange={setSize}>
         <Sidebar />
       </Panel>
       <Separator />
@@ -44,10 +38,10 @@ Flex container. `orientation` is `horizontal` (default) or `vertical`. Groups ne
 
 A group holds **at most one sized panel on each side of a fill panel**: one before it, one after it. Layouts with more splits are expressed by nesting groups, which is also how nested orientations work.
 
-`layoutDependency` makes reordering animate. Set it to whatever value decides the order of the children — the mode, the layout name, a sort key — and every box in the group travels from where it was to where the new order puts it instead of jumping there. The group's `transition` times the trip, and it goes instant under `prefers-reduced-motion: reduce`. A panel that moves also re-reads which side of the fill panel it is on, so folds keep anchoring on the edge facing the fill.
+Reordering animates on its own. Give the children keys, render them in a new order, and every box in the group travels from where it was to where the new order puts it instead of jumping there. The group's `transition` times the trip, and it goes instant under `prefers-reduced-motion: reduce`. A panel that moves also re-reads which side of the fill panel it is on, so folds keep anchoring on the edge facing the fill.
 
 ```tsx
-<Group orientation="horizontal" layoutDependency={mode}>
+<Group orientation="horizontal">
   {mode === 'agent' ? [chat, seam, workspace] : [workspace, seam, chat]}
 </Group>
 ```
@@ -61,9 +55,11 @@ A panel is _sized_ when given `size`, and _filling_ otherwise.
 - `size` / `onSizeChange` — controlled pixel size. `onSizeChange` fires once at the end of a drag, and on every keyboard step; during a drag the size is driven by a motion value, so no re-render per frame.
 - `minSize` / `maxSize` — bounds. `maxSize` is additionally capped by the space the other sized panels leave, so a panel can never push a sibling out of the group.
 - `collapsed` / `onCollapsedChange` — folds the panel to zero. Dragging past half of `minSize` collapses; `Enter` on the separator toggles. Collapse-on-drag needs both `minSize` and `onCollapsedChange`.
-- `defaultSize` — what a separator double-click resets to.
+- `resetSize` — what a separator double-click resets to. Defaults to the size the panel mounted with, so double-click reset works without it.
 - `transition` — Motion transition for folding. Defaults to a 250ms ease; automatically becomes instant under `prefers-reduced-motion: reduce`.
 - `pin` (filling panels only) — keeps the content at its final size and clipped while a sized panel folds, so heavy content (an editor, a virtualised table) lays out once per fold instead of once per frame. The content is anchored to the edge that is not moving, so it holds still while the panel edge slides across it. Off by default. Pin content that bleeds to its own edges; a block with its own border or rounded corners shows that edge jumping instead.
+
+A sized panel renders two elements: an outer box that carries the animated extent, and the content box that takes your `style`, `className` and the rest of the props. `initial` / `animate` / `exit` apply to the content, so it can fade or slide while the box folds.
 
 A sized panel can always be dragged by the edge facing the filling panel, `Separator` or not.
 
@@ -135,6 +131,7 @@ panel.drag.move({ x: 40, y: 0 })
 panel.drag.end()
 panel.resizeByKey(event) // arrows, Shift, Page, Home / End, Enter
 panel.sync({ size: 280, collapsed: true }) // a fold is one option change
+panel.destroy() // drop the internal subscriptions when the node is gone
 ```
 
 The core owns numbers, never nodes, so the adapter lays the flexbox out. That half is small and fixed:
@@ -152,6 +149,7 @@ For crossings, register each grip with `grips.register(element, panel)`, then on
 
 - `createPanelGroup(orientation)` — the shared registry: axes, the fill panel's motion values, the sized panels by side.
 - `createPanel(group, options)` — one panel's state machine: bounds, drag, keyboard, fold animations, collapse. `sync(options)` feeds it new props; `destroy()` releases it.
+- `usePanelState(panel)` (from `motion-panels/react`) — subscribes a React component to a controller's `state` if you drive the core yourself.
 - `grips` — the pointer registry behind crossings: rect-cached hit testing, `crossed` / `held` marking, and the partner lookup that makes an intersection drag several separators at once.
 
 The docs site carries a live split built this way — no components, just the core wired to plain DOM nodes — next to the React version of the same layout.
@@ -167,7 +165,7 @@ The docs site carries a live split built this way — no components, just the co
 ## Known limits
 
 - Sizes are controlled by you and are **not** clamped when the container shrinks; re-clamp on resize if your layout can get smaller than the panels.
-- A group needs a filling panel to tell which side each sized panel is on.
+- A group needs a filling panel to tell which side each sized panel is on, and holds at most one sized panel per side. Both mistakes log a warning in development builds.
 - `onSizeChange` reports at the end of a drag, not per frame. Read `panel.motion.size` if you need a live value.
 
 ## License

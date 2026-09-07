@@ -30,7 +30,6 @@ export const NestedDemo = () => {
       <Group orientation="horizontal">
         <Pane
           size={sidebar}
-          defaultSize={200}
           minSize={140}
           maxSize={360}
           onSizeChange={setSidebar}
@@ -48,7 +47,6 @@ export const NestedDemo = () => {
             <Separator className={SEPARATOR} aria-label="Resize console" />
             <Pane
               size={terminal}
-              defaultSize={100}
               minSize={60}
               maxSize={180}
               onSizeChange={setTerminal}
@@ -119,7 +117,6 @@ export const DeepNestDemo = () => {
         <Pane
           {...NEST_FOLDS.files}
           size={files}
-          defaultSize={140}
           minSize={100}
           maxSize={240}
           collapsed={hidden.files}
@@ -142,7 +139,6 @@ export const DeepNestDemo = () => {
                 <Pane
                   {...NEST_FOLDS.outline}
                   size={outline}
-                  defaultSize={120}
                   minSize={80}
                   maxSize={220}
                   collapsed={hidden.outline}
@@ -159,7 +155,6 @@ export const DeepNestDemo = () => {
             <Pane
               {...NEST_FOLDS.terminal}
               size={terminal}
-              defaultSize={90}
               minSize={60}
               maxSize={160}
               collapsed={hidden.terminal}

@@ -27,7 +27,6 @@ export function Layout() {
     <Group orientation="horizontal">
       <Panel
         size={width}
-        defaultSize={240}
         minSize={160}
         maxSize={420}
         onSizeChange={setWidth}
