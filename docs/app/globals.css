@@ -451,11 +451,11 @@ button[aria-pressed='true'] {
 }
 
 /* The edge grip a panel renders for itself stays an invisible hit area. */
-[role='separator'][data-resizable-edge] {
+[role='separator'][data-glidepanels-edge] {
   margin: 0;
 }
 
-[role='separator'][data-resizable-edge]::after {
+[role='separator'][data-glidepanels-edge]::after {
   display: none;
 }
 

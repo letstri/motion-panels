@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { Code } from './code'
+import { CoreDemo } from './core-demo'
 import {
   BothEdgesDemo,
   DeepNestDemo,
@@ -22,6 +23,7 @@ const SECTIONS = [
   { id: 'pinning', title: 'Pinning' },
   { id: 'nesting', title: 'Nesting and intersections' },
   { id: 'both-edges', title: 'Panels on both edges' },
+  { id: 'core', title: 'Core, without React' },
   { id: 'styling', title: 'Styling' },
   { id: 'api', title: 'API' },
 ]
@@ -116,6 +118,54 @@ const API: {
   },
 ]
 
+const CORE_API: [string, string, string][] = [
+  [
+    'createPanelGroup',
+    '(motion, orientation?) => PanelGroup',
+    'The shared registry: axes, the filling panel motion values, the sized panels by side. motion is { animate, motionValue }.',
+  ],
+  [
+    'createPanel',
+    '(group, options) => PanelController',
+    'One panel state machine: bounds, drag, keyboard, folds, collapse.',
+  ],
+  [
+    'controller.attach',
+    '(element) => () => void',
+    'Reads the panel place in the group and registers it. Returns the detach.',
+  ],
+  [
+    'controller.sync',
+    '(options) => void',
+    'Feeds new options in. Changing the target starts a fold.',
+  ],
+  [
+    'controller.motion',
+    '{ content, size }',
+    'MotionValues for the panel and its content. Bind size to width or height.',
+  ],
+  [
+    'controller.state',
+    '{ bare, dragging, end, folding }',
+    'Read it through subscribe. A frozen object, replaced only when it changes.',
+  ],
+  [
+    'controller.drag',
+    '{ start, move, end, cancel }',
+    'Pointer drag, in the units your gesture layer reports.',
+  ],
+  [
+    'controller.resizeByKey',
+    '(event) => void',
+    'Arrows, Shift, PageUp / PageDown, Home / End, Enter. Takes any KeyboardEvent.',
+  ],
+  [
+    'grips',
+    'registry',
+    'Rect-cached hit testing behind crossings: register, at, mark, partners.',
+  ],
+]
+
 const DocsPage = () => (
   <div className="layout">
     <nav className="toc">
@@ -130,21 +180,28 @@ const DocsPage = () => (
     </nav>
     <main>
       <header>
-        <h1>Resizable panels for React</h1>
+        <h1>Resizable panels that glide</h1>
         <p className="tagline">
-          Unstyled, animated with motion, no third-party layout library.
-          Separators are optional — a sized panel drags by its own edge. Every
-          demo below runs the published package; the only styling is the CSS on
-          this page.
+          A framework-agnostic core with a React adapter on top. Unstyled,
+          animated with motion, no third-party layout library. Separators are
+          optional — a sized panel drags by its own edge. Every demo below runs
+          the published package; the only styling is the CSS on this page.
         </p>
       </header>
 
       <Section
         id="install"
         title="Install"
-        lead="motion and react are peer dependencies."
+        lead="Two entry points. glidepanels is the resizing engine and depends on nothing but motion; glidepanels/react is the components. React is an optional peer — take the core alone and the React types never load."
       >
         <Code lang="sh" code="pnpm add glidepanels motion react" />
+        <Code
+          code={`
+import { createPanel, createPanelGroup } from 'glidepanels'
+//       ^?
+import { Group, Panel, Separator } from 'glidepanels/react'
+`}
+        />
       </Section>
 
       <Section
@@ -463,9 +520,86 @@ export function Workbench() {
       </Section>
 
       <Section
+        id="core"
+        title="Core, without React"
+        lead="The demo below renders no components: it builds a group and a panel from the core and wires them to plain DOM nodes. Same bounds, same folds, same keyboard — drag the seam, or focus the grip and use the arrows. This is the whole surface an adapter for another framework has to cover, which is why a Vue binding over motion-v is a thin layer rather than a rewrite."
+      >
+        <CoreDemo />
+        <Code
+          code={`
+import { createPanel, createPanelGroup, FILL_ATTRIBUTE } from 'glidepanels'
+import { animate, motionValue } from 'motion'
+
+export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElement, grip: HTMLElement) {
+  // The adapter hands motion in, so the panels and the elements that render
+  // them always share one Motion instance.
+  const group = createPanelGroup({ animate, motionValue }, 'horizontal')
+  //    ^?
+
+  fill.setAttribute(FILL_ATTRIBUTE, '')
+
+  let size = 240
+  const base = {
+    minSize: 160,
+    maxSize: 420,
+    onSizeChange: (next: number) => {
+      size = next
+      controller.sync({ ...base, size })
+    },
+  }
+
+  const controller = createPanel(group, { ...base, size })
+  const detach = controller.attach(panel)
+
+  // One motion value drives the panel; clamp the overshoot the way you like.
+  controller.motion.size.on('change', (value) => {
+    panel.style.width = \`\${Math.max(0, value)}px\`
+  })
+
+  grip.role = 'separator'
+  grip.tabIndex = 0
+  grip.ariaOrientation = group.axes.separator
+
+  grip.addEventListener('pointerdown', (event) => {
+    const origin = { x: event.clientX, y: event.clientY }
+    grip.setPointerCapture(event.pointerId)
+    controller.drag.start()
+
+    const onMove = (move: PointerEvent) =>
+      controller.drag.move({ x: move.clientX - origin.x, y: move.clientY - origin.y })
+    const onUp = () => {
+      controller.drag.end()
+      grip.removeEventListener('pointermove', onMove)
+      grip.removeEventListener('pointerup', onUp)
+    }
+
+    grip.addEventListener('pointermove', onMove)
+    grip.addEventListener('pointerup', onUp)
+  })
+
+  grip.addEventListener('keydown', (event) => controller.resizeByKey(event))
+  grip.addEventListener('dblclick', () => controller.reset())
+
+  return () => {
+    detach()
+    controller.destroy()
+  }
+}
+`}
+        />
+        <p className="note">
+          <code>attach</code> reads the panel&apos;s place in the group — which
+          side of the filling panel it sits on, and so which edge drags — and
+          returns the detach. <code>sync</code> feeds it new options on every
+          state change, the same call the React adapter makes in a layout
+          effect. Everything else is state you already own.
+        </p>
+      </Section>
+
+      <Section
         id="styling"
         title="Styling"
-        lead="Nothing ships styled. A separator is [role='separator'] with aria-orientation, positioned over the edge of the panel it resizes and taking no space in the flow, so give it a width and pull it across the seam with a negative margin. Every separator the pointer would drag from a crossing carries data-crossing while it hovers there, and data-resizing from the press until release, grabbed itself or pulled along. A sized panel with no Separator of its own renders one anyway, as the drag area on its edge — it carries data-resizable-edge and should stay invisible, so exclude it from anything you paint."
+        lead="Nothing ships styled. A separator is [role='separator'] with aria-orientation, positioned over the edge of the panel it resizes and taking no space in the flow, so give it a width and pull it across the seam with a negative margin. Every separator the pointer would drag from a crossing carries data-crossing while it hovers there, and data-resizing from the press until release, grabbed itself or pulled along. A sized panel with no Separator of its own renders one anyway, as the drag area on its edge — it carries data-glidepanels-edge and should stay invisible, so exclude it from anything you paint."
       >
         <Code
           lang="css"
@@ -491,7 +625,7 @@ export function Workbench() {
 }
 
 /* the edge grip a panel renders for itself: hit area only */
-[role='separator'][data-resizable-edge]::after {
+[role='separator'][data-glidepanels-edge]::after {
   display: none;
 }
 `}
@@ -529,6 +663,27 @@ export function Workbench() {
             )}
           </div>
         ))}
+        <h3>
+          <code>glidepanels</code>
+        </h3>
+        <p>
+          The core, for an adapter or for plain DOM. Nothing here imports React.
+        </p>
+        <table className="props">
+          <tbody>
+            {CORE_API.map(([name, type, description]) => (
+              <tr key={name}>
+                <td>
+                  <code>{name}</code>
+                </td>
+                <td>
+                  <code className="type">{type}</code>
+                </td>
+                <td>{description}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Section>
     </main>
   </div>

@@ -122,6 +122,8 @@ panel.drag.end()
 - `createPanel(group, options)` — one panel's state machine: bounds, drag, keyboard, fold animations, collapse. `sync(options)` feeds it new props; `destroy()` releases it.
 - `grips` — the pointer registry behind crossings: rect-cached hit testing, `crossed` / `held` marking, and the partner lookup that makes an intersection drag several separators at once.
 
+The docs site carries a live split built this way — no components, just the core wired to plain DOM nodes — next to the React version of the same layout.
+
 ## Accessibility and input
 
 - Separators are `role="separator"`, focusable, and expose `aria-orientation`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax` and `aria-valuetext`. Pass `aria-label` to name the panel a separator resizes; the default is `Resize panel`.
