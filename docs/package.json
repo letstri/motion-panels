@@ -1,0 +1,26 @@
+{
+  "name": "glidepanels-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3200",
+    "build": "next build",
+    "start": "next start --port 3200",
+    "check-types": "tsc"
+  },
+  "dependencies": {
+    "@shikijs/twoslash": "^3.23.0",
+    "glidepanels": "workspace:*",
+    "motion": "^13.2.0",
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "shiki": "^3.23.0",
+    "twoslash": "^0.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "typescript": "^5.9.3"
+  }
+}

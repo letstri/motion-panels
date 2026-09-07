@@ -1,0 +1,4 @@
+shellEmulator: true
+packages:
+  - glidepanels
+  - docs
