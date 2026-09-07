@@ -13,6 +13,7 @@ import {
   SeparatorDemo,
   VerticalDemo,
 } from './demos'
+import { Source } from './source-view'
 
 const SECTIONS = [
   { id: 'install', title: 'Install' },
@@ -238,6 +239,13 @@ export function Layout() {
 }
 `}
         />
+        <Source
+          blocks={[
+            { file: 'demos.tsx', region: 'split' },
+            { file: 'demos.tsx', region: 'helpers' },
+            { file: 'globals.css', region: 'demo-panes', lang: 'css' },
+          ]}
+        />
       </Section>
 
       <Section
@@ -283,6 +291,13 @@ export function Layout() {
 }
 `}
         />
+        <Source
+          blocks={[
+            { file: 'demos.tsx', region: 'split' },
+            { file: 'globals.css', region: 'separators', lang: 'css' },
+          ]}
+          note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
+        />
       </Section>
 
       <Section
@@ -310,6 +325,10 @@ export function Output() {
   )
 }
 `}
+        />
+        <Source
+          blocks={[{ file: 'demos.tsx', region: 'orientation' }]}
+          note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
         />
       </Section>
 
@@ -349,6 +368,13 @@ export function Navigator() {
   )
 }
 `}
+        />
+        <Source
+          blocks={[
+            { file: 'demos.tsx', region: 'collapsing' },
+            { file: 'globals.css', region: 'demo-chrome', lang: 'css' },
+          ]}
+          note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
         />
       </Section>
 
@@ -399,6 +425,10 @@ export function Workspace() {
   )
 }
 `}
+        />
+        <Source
+          blocks={[{ file: 'demos.tsx', region: 'pinning' }]}
+          note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
         />
       </Section>
 
@@ -484,6 +514,14 @@ export function Workbench() {
 }
 `}
         />
+        <Source
+          blocks={[
+            { file: 'demos.tsx', region: 'nesting' },
+            { file: 'demos.tsx', region: 'intersections' },
+            { file: 'globals.css', region: 'separators', lang: 'css' },
+          ]}
+          note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
+        />
       </Section>
 
       <Section
@@ -516,6 +554,10 @@ export function Workbench() {
   )
 }
 `}
+        />
+        <Source
+          blocks={[{ file: 'demos.tsx', region: 'both-edges' }]}
+          note="Pane, Card, Rows and Demo are the shared wrappers, listed in full under Quick start."
         />
       </Section>
 
@@ -594,6 +636,12 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
           state change, the same call the React adapter makes in a layout
           effect. Everything else is state you already own.
         </p>
+        <Source
+          blocks={[
+            { file: 'core-demo.tsx', region: 'core' },
+            { file: 'globals.css', region: 'demo-panes', lang: 'css' },
+          ]}
+        />
       </Section>
 
       <Section

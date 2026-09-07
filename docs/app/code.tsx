@@ -26,9 +26,11 @@ const twoslasher = createTwoslasher({
 export const Code = async ({
   code,
   lang = 'tsx',
+  twoslash = true,
 }: {
   code: string
   lang?: 'css' | 'sh' | 'tsx'
+  twoslash?: boolean
 }) => {
   const shiki = await highlighter
   const html = shiki.codeToHtml(code.trim(), {
@@ -36,7 +38,7 @@ export const Code = async ({
     lang,
     themes: THEMES,
     transformers:
-      lang === 'tsx'
+      lang === 'tsx' && twoslash
         ? [
             transformerTwoslash({
               renderer: rendererRich({ queryRendering: 'line' }),

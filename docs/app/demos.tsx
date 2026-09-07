@@ -4,6 +4,7 @@ import { Group, Panel, Separator } from 'glidepanels/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { useState } from 'react'
 
+// #region helpers
 const Pane = ({ style, ...props }: ComponentProps<typeof Panel>) => (
   <Panel style={{ padding: 3, ...style }} {...props} />
 )
@@ -92,7 +93,9 @@ const Demo = ({
     <div className={tall ? 'stage tall' : 'stage'}>{children}</div>
   </figure>
 )
+// #endregion
 
+// #region split
 const Split = ({ separator }: { separator?: boolean }) => {
   const [width, setWidth] = useState(240)
 
@@ -122,7 +125,9 @@ const Split = ({ separator }: { separator?: boolean }) => {
 export const HorizontalDemo = () => <Split />
 
 export const SeparatorDemo = () => <Split separator />
+// #endregion
 
+// #region orientation
 export const VerticalDemo = () => {
   const [height, setHeight] = useState(120)
 
@@ -148,7 +153,9 @@ export const VerticalDemo = () => {
     </Demo>
   )
 }
+// #endregion
 
+// #region collapsing
 const FOLDS = {
   fade: {
     animate: { opacity: 1 },
@@ -245,7 +252,9 @@ export const FoldDemo = () => {
     </>
   )
 }
+// #endregion
 
+// #region pinning
 const PIN_TEXT =
   'Pinning holds this text at the width the panel ends the fold with, so the line breaks are measured once instead of on every frame. Turn the pin off and watch the words rewrap the whole way through. Real content pays that cost on every frame too: a code editor relaying out, a virtualised table remeasuring its rows.'
 
@@ -308,7 +317,9 @@ const PinSplit = ({ end }: { end?: boolean }) => {
 export const PinDemo = () => <PinSplit />
 
 export const PinEndDemo = () => <PinSplit end />
+// #endregion
 
+// #region nesting
 export const NestedDemo = () => {
   const [sidebar, setSidebar] = useState(200)
   const [terminal, setTerminal] = useState(100)
@@ -351,7 +362,9 @@ export const NestedDemo = () => {
     </Demo>
   )
 }
+// #endregion
 
+// #region both-edges
 export const BothEdgesDemo = () => {
   const [left, setLeft] = useState(180)
   const [right, setRight] = useState(180)
@@ -388,7 +401,9 @@ export const BothEdgesDemo = () => {
     </Demo>
   )
 }
+// #endregion
 
+// #region intersections
 export const DeepNestDemo = () => {
   const [files, setFiles] = useState(140)
   const [outline, setOutline] = useState(120)
@@ -448,3 +463,5 @@ export const DeepNestDemo = () => {
     </Demo>
   )
 }
+
+// #endregion

@@ -4,6 +4,7 @@ import { createPanel, createPanelGroup, FILL_ATTRIBUTE } from 'glidepanels'
 import { animate, motionValue } from 'motion'
 import { useEffect, useRef } from 'react'
 
+// #region core
 export const mountSplit = (root: HTMLElement) => {
   const group = createPanelGroup({ animate, motionValue }, 'horizontal')
 
@@ -135,3 +136,4 @@ export const CoreDemo = () => {
     </figure>
   )
 }
+// #endregion
