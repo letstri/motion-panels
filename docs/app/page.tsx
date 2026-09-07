@@ -16,9 +16,11 @@ import {
 import { Source } from './source-view'
 
 const TABLE =
-  'mt-3 w-full border-collapse text-[14px] [&_td]:border-line [&_td]:border-t [&_td]:py-2 [&_td]:pr-4 [&_td]:align-top [&_td]:text-muted [&_td:first-child]:whitespace-nowrap [&_td:first-child]:text-text'
+  'mt-3 w-full border-collapse text-[14px] [&_td]:border-line [&_td]:border-t [&_td]:py-2 [&_td]:pr-4 [&_td]:align-top [&_td]:text-muted [&_td:first-child]:text-text'
 
-const PROPS = `${TABLE} table-fixed [&_td:first-child]:w-[180px] [&_td:first-child]:whitespace-normal [&_td:nth-child(2)]:w-[200px]`
+const KEYS = `${TABLE} [&_td:first-child]:whitespace-nowrap`
+
+const PROPS = `${TABLE} table-fixed [&_td:first-child]:w-[180px] [&_td:nth-child(2)]:w-[200px]`
 
 const LEAD = 'max-w-[68ch] text-muted text-pretty'
 
@@ -272,7 +274,7 @@ export function Layout() {
         lead="Drop a Separator between two panels and the same split gains a visible grip, keyboard control and double-click reset. It finds the sized panel next to it on its own, resizes that one, and sits over its edge without taking space in the flow. It is a focusable [role='separator'] carrying the panel size on aria-valuenow, so it reads and drives from the keyboard with nothing extra."
       >
         <SeparatorDemo />
-        <table className={TABLE}>
+        <table className={KEYS}>
           <tbody>
             {[
               ['Arrows', 'Grow or shrink by 10px, along the group axis'],

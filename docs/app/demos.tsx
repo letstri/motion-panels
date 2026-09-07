@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { useState } from 'react'
 
 // #region helpers
-const STAGE = 'h-[300px] rounded-[14px] border border-line bg-sunken p-2.5'
+const STAGE = 'rounded-[14px] border border-line bg-sunken p-2.5'
 
 const CARD =
   'flex h-full w-full flex-col overflow-hidden rounded-[9px] border border-line bg-surface'
@@ -26,7 +26,9 @@ const LINE_NUMBER =
   'before:min-w-3.5 before:flex-none before:text-right before:text-line-strong before:[counter-increment:line] before:content-[counter(line)]'
 
 const BUTTON =
-  'cursor-pointer rounded-[7px] border border-transparent px-2.5 py-[3px] text-[13px] text-muted hover:text-text aria-pressed:bg-surface aria-pressed:text-text aria-pressed:shadow-pressed'
+  'cursor-pointer rounded-[7px] border px-2.5 py-[3px] text-[13px] text-muted hover:text-text aria-pressed:bg-surface aria-pressed:text-text aria-pressed:shadow-pressed'
+
+const SEGMENT = `${BUTTON} border-transparent`
 
 const CONTROL = `${BUTTON} border-line bg-surface`
 
@@ -125,7 +127,9 @@ const Demo = ({
     {controls ? (
       <div className="flex items-center gap-2">{controls}</div>
     ) : null}
-    <div className={tall ? `${STAGE} h-[360px]` : STAGE}>{children}</div>
+    <div className={`${STAGE} ${tall ? 'h-[360px]' : 'h-[300px]'}`}>
+      {children}
+    </div>
   </figure>
 )
 // #endregion
@@ -242,7 +246,7 @@ export const FoldDemo = () => {
                 <button
                   key={name}
                   type="button"
-                  className={BUTTON}
+                  className={SEGMENT}
                   aria-pressed={name === fold}
                   onClick={() => setFold(name as Fold)}
                 >
