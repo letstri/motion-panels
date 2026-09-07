@@ -8,6 +8,8 @@ import {
   createPanel,
   EDGE_SIZE_COARSE,
   EDGE_SIZE_FINE,
+  reducedMotion,
+  TRANSITION,
 } from '../core'
 import { useGroup, useIsomorphicLayoutEffect } from './internal'
 import { Separator } from './separator'
@@ -29,6 +31,11 @@ export type FillPanelProps = HTMLMotionProps<'div'> & {
 }
 
 export type PanelProps = FillPanelProps | SizedPanelProps
+
+const INSTANT: Transition = { duration: 0 }
+
+const useReducedMotion = () =>
+  useSyncExternalStore(reducedMotion.subscribe, reducedMotion.get, () => false)
 
 const useEdgeSize = () =>
   useSyncExternalStore(
@@ -120,6 +127,7 @@ const SizedPanel = ({
   const [panel] = useState(() => createPanel(group, options))
   const state = usePanelState(panel)
   const edge = useEdgeSize()
+  const reduced = useReducedMotion()
   const rendered = useTransform(panel.motion.size, (value) =>
     Math.max(0, value)
   )
@@ -162,7 +170,7 @@ const SizedPanel = ({
             key="content"
             exit={closed}
             initial={initial}
-            transition={transition}
+            transition={reduced ? INSTANT : (transition ?? TRANSITION)}
             style={{
               ...style,
               flexShrink: 0,
