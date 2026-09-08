@@ -15,9 +15,13 @@ export const SeparatorSection = () => (
       rows={[
         ['Arrows', 'Grow or shrink by 10px, along the group axis'],
         ['Shift + arrows', 'The same, by 50px'],
+        ['Page up / Page down', 'The same, by 50px, without a modifier'],
         ['Home / End', 'Jump to minSize or maxSize'],
         ['Enter', 'Toggle collapsed (needs onCollapsedChange)'],
-        ['Double-click', 'Reset to the size the panel mounted with'],
+        [
+          'Double-click',
+          'Reset to defaultSize, or to the size the panel mounted with',
+        ],
       ]}
     />
     <Code

@@ -1,3 +1,5 @@
+import { version } from 'motion-panels/package.json'
+
 import { Button } from '@/components/ui/button'
 import { HeroDemo } from '@/demos'
 
@@ -14,7 +16,7 @@ export const Hero = () => (
         className={`${SHELL} kicker text-muted-foreground/60 flex h-10 items-center justify-between`}
       >
         <span>Docs / React</span>
-        <span>v0.1.0</span>
+        <span>v{version}</span>
       </div>
     </div>
     <div

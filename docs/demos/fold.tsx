@@ -16,6 +16,7 @@ import {
   SEPARATOR,
   SYMBOLS,
   px,
+  usePaneSize,
 } from './shared'
 
 type Fold = keyof typeof FOLDS
@@ -29,7 +30,7 @@ const formatProp = (value: object) =>
     .replace(/\}$/u, ' }')
 
 export const FoldDemo = () => {
-  const [width, setWidth] = useState(260)
+  const [width, setWidth] = usePaneSize(260, 140)
   const [collapsed, setCollapsed] = useState(false)
   const [fold, setFold] = useState<Fold>('flip')
 
@@ -38,6 +39,7 @@ export const FoldDemo = () => {
       controls={
         <>
           <ToggleGroup
+            className="flex-wrap"
             size="sm"
             value={[fold]}
             onValueChange={([next]) => next && setFold(next as Fold)}
@@ -70,8 +72,8 @@ export const FoldDemo = () => {
         <Pane
           {...FOLDS[fold]}
           size={width}
-          minSize={180}
-          maxSize={400}
+          minSize="22%"
+          maxSize="52%"
           collapsed={collapsed}
           onCollapsedChange={setCollapsed}
           onSizeChange={setWidth}

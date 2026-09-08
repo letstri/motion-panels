@@ -1,18 +1,27 @@
 'use client'
 
 import { Group } from 'motion-panels/react'
-import { useState } from 'react'
 
-import { Card, Demo, Editor, FILES, Pane, Rows, SYMBOLS, px } from './shared'
+import {
+  Card,
+  Demo,
+  Editor,
+  FILES,
+  Pane,
+  Rows,
+  SYMBOLS,
+  px,
+  usePaneSize,
+} from './shared'
 
 export const BothEdgesDemo = () => {
-  const [left, setLeft] = useState(180)
-  const [right, setRight] = useState(180)
+  const [left, setLeft] = usePaneSize(180, 96)
+  const [right, setRight] = usePaneSize(180, 96)
 
   return (
     <Demo>
       <Group orientation="horizontal">
-        <Pane size={left} minSize={120} maxSize={300} onSizeChange={setLeft}>
+        <Pane size={left} minSize="14%" maxSize="35%" onSizeChange={setLeft}>
           <Card label="Files" size={px(left)}>
             <Rows items={FILES} active="index.tsx" />
           </Card>
@@ -20,7 +29,7 @@ export const BothEdgesDemo = () => {
         <Pane>
           <Editor />
         </Pane>
-        <Pane size={right} minSize={120} maxSize={300} onSizeChange={setRight}>
+        <Pane size={right} minSize="14%" maxSize="35%" onSizeChange={setRight}>
           <Card label="Outline" size={px(right)}>
             <Rows items={SYMBOLS} />
           </Card>

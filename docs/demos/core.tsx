@@ -11,7 +11,7 @@ import { useEffect, useRef } from 'react'
 
 import { badgeVariants } from '@/components/ui/badge'
 
-import { CARD, CARD_HEAD, SEPARATOR, SIZE_BADGE } from './shared'
+import { CARD, CARD_HEAD, isCompact, SEPARATOR, SIZE_BADGE } from './shared'
 
 const mountSplit = (root: HTMLElement) => {
   const group = createPanelGroup('horizontal')
@@ -23,7 +23,9 @@ const mountSplit = (root: HTMLElement) => {
 
   const badge = cn(badgeVariants({ variant: 'secondary' }), SIZE_BADGE)
 
-  content.innerHTML = `<div class="${CARD}"><div class="${CARD_HEAD}"><span>Files</span><span class="${badge}">240px</span></div></div>`
+  const start = isCompact() ? 130 : 240
+
+  content.innerHTML = `<div class="${CARD}"><div class="${CARD_HEAD}"><span>Files</span><span class="${badge}">${start}px</span></div></div>`
   fill.innerHTML = `<div class="${CARD}"><div class="${CARD_HEAD}"><span>Editor</span></div></div>`
   fill.setAttribute(FILL_ATTRIBUTE, '')
 
@@ -38,7 +40,7 @@ const mountSplit = (root: HTMLElement) => {
     display: 'flex',
     flexShrink: '0',
     position: 'relative',
-    width: '240px',
+    width: `${start}px`,
   })
   Object.assign(content.style, {
     flexShrink: '0',
@@ -62,10 +64,10 @@ const mountSplit = (root: HTMLElement) => {
   panel.append(content, grip)
   root.append(panel, fill)
 
-  let size = 240
+  let size = start
   const base = {
-    maxSize: 420,
-    minSize: 160,
+    maxSize: '55%' as const,
+    minSize: '20%' as const,
     onSizeChange: (next: number) => {
       size = next
       controller.sync({ ...base, size })

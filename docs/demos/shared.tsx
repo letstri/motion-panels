@@ -2,6 +2,7 @@
 
 import { Panel } from 'motion-panels/react'
 import type { ComponentProps, ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 
@@ -24,6 +25,30 @@ const LINE_NUMBER =
 
 export const SEPARATOR =
   "z-10 flex items-center justify-center rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 after:bg-muted-foreground/45 after:opacity-0 after:transition after:duration-150 after:content-[''] hover:after:bg-muted-foreground hover:after:opacity-100 focus-visible:after:bg-foreground focus-visible:after:opacity-100 active:after:bg-foreground aria-[orientation=horizontal]:h-3.5 aria-[orientation=vertical]:w-3.5 aria-[orientation=horizontal]:after:h-0.5 aria-[orientation=horizontal]:after:w-[calc(100%-20px)] aria-[orientation=vertical]:after:h-[calc(100%-20px)] aria-[orientation=vertical]:after:w-0.5 data-crossing:after:bg-muted-foreground data-crossing:after:opacity-100 data-resizing:after:bg-foreground data-resizing:after:opacity-100"
+
+const COMPACT = '(max-width: 640px)'
+
+/**
+ * A phone gives a demo about a third of the desktop stage, so panels that ship
+ * a pixel size start from the narrow number there. Their bounds are written as
+ * percentages instead, which need no breakpoint at all.
+ */
+export const usePaneSize = (wide: number, narrow: number) => {
+  const [size, setSize] = useState(wide)
+
+  useEffect(() => {
+    const query = matchMedia(COMPACT)
+    const sync = () => setSize(query.matches ? narrow : wide)
+
+    sync()
+    query.addEventListener('change', sync)
+    return () => query.removeEventListener('change', sync)
+  }, [narrow, wide])
+
+  return [size, setSize] as const
+}
+
+export const isCompact = () => matchMedia(COMPACT).matches
 
 export const Pane = ({ style, ...props }: ComponentProps<typeof Panel>) => (
   <Panel style={{ padding: 3, ...style }} {...props} />
@@ -87,7 +112,7 @@ export const Lines = ({
 )
 
 export const FILES = ['index.tsx', 'group.tsx', 'panel.tsx', 'separator.tsx']
-export const SYMBOLS = ['Group', 'Panel', 'Separator', 'useGroup']
+export const SYMBOLS = ['Group', 'Panel', 'Separator', 'createPanel']
 
 export const SOURCE = [
   'export function Workspace() {',

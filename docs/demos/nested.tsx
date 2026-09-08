@@ -19,10 +19,11 @@ import {
   SEPARATOR,
   SYMBOLS,
   px,
+  usePaneSize,
 } from './shared'
 
 export const NestedDemo = () => {
-  const [sidebar, setSidebar] = useState(200)
+  const [sidebar, setSidebar] = usePaneSize(200, 120)
   const [terminal, setTerminal] = useState(100)
 
   return (
@@ -30,8 +31,8 @@ export const NestedDemo = () => {
       <Group orientation="horizontal">
         <Pane
           size={sidebar}
-          minSize={140}
-          maxSize={360}
+          minSize="18%"
+          maxSize="45%"
           onSizeChange={setSidebar}
         >
           <Card label="Files" size={px(sidebar)}>
@@ -69,8 +70,8 @@ const NEST_FOLDS = {
 } as const satisfies Record<string, Partial<ComponentProps<typeof Panel>>>
 
 export const DeepNestDemo = () => {
-  const [files, setFiles] = useState(140)
-  const [outline, setOutline] = useState(120)
+  const [files, setFiles] = usePaneSize(140, 92)
+  const [outline, setOutline] = usePaneSize(120, 84)
   const [terminal, setTerminal] = useState(90)
   const [hidden, setHidden] = useState({
     files: false,
@@ -117,8 +118,8 @@ export const DeepNestDemo = () => {
         <Pane
           {...NEST_FOLDS.files}
           size={files}
-          minSize={100}
-          maxSize={240}
+          minSize="12%"
+          maxSize="30%"
           collapsed={hidden.files}
           onCollapsedChange={toggle('files')}
           onSizeChange={setFiles}
@@ -139,8 +140,8 @@ export const DeepNestDemo = () => {
                 <Pane
                   {...NEST_FOLDS.outline}
                   size={outline}
-                  minSize={80}
-                  maxSize={220}
+                  minSize="12%"
+                  maxSize="30%"
                   collapsed={hidden.outline}
                   onCollapsedChange={toggle('outline')}
                   onSizeChange={setOutline}

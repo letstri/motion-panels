@@ -1,17 +1,26 @@
 'use client'
 
 import { Group, Separator } from 'motion-panels/react'
-import { useState } from 'react'
 
-import { Card, Demo, Editor, FILES, Pane, Rows, SEPARATOR, px } from './shared'
+import {
+  Card,
+  Demo,
+  Editor,
+  FILES,
+  Pane,
+  Rows,
+  SEPARATOR,
+  px,
+  usePaneSize,
+} from './shared'
 
 const Split = ({ separator }: { separator?: boolean }) => {
-  const [width, setWidth] = useState(240)
+  const [width, setWidth] = usePaneSize(240, 130)
 
   return (
     <Demo>
       <Group orientation="horizontal">
-        <Pane size={width} minSize={160} maxSize={420} onSizeChange={setWidth}>
+        <Pane size={width} minSize="20%" maxSize="55%" onSizeChange={setWidth}>
           <Card label="Files" size={px(width)}>
             <Rows items={FILES} active="panel.tsx" />
           </Card>

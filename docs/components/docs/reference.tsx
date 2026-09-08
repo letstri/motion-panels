@@ -16,9 +16,9 @@ export const Reference = ({
   head?: string[]
   rows: readonly (readonly string[])[]
 }) => (
-  <Table className="mt-5 text-[14px]">
+  <Table className="mt-5 text-[14px] max-sm:[&_tbody]:block">
     {head ? (
-      <TableHeader>
+      <TableHeader className="max-sm:hidden">
         <TableRow className="hover:bg-transparent">
           {head.map((cell, index) => (
             <TableHead
@@ -37,19 +37,22 @@ export const Reference = ({
     ) : null}
     <TableBody>
       {rows.map((cells) => (
-        <TableRow key={cells[0]} className="hover:bg-transparent">
+        <TableRow
+          key={cells[0]}
+          className="hover:bg-transparent max-sm:block max-sm:py-2"
+        >
           {cells.map((cell, index) =>
             index === cells.length - 1 ? (
               <TableCell
                 key={cell}
-                className="text-muted-foreground w-full py-2.5 pr-0 pl-4 align-top whitespace-normal"
+                className="text-muted-foreground w-full py-2.5 pr-0 pl-4 align-top whitespace-normal max-sm:block max-sm:w-auto max-sm:pt-1 max-sm:pl-0"
               >
                 {cell}
               </TableCell>
             ) : (
               <TableCell
                 key={cell}
-                className="px-0 py-2.5 align-top first:pr-4 [&+td]:pr-4"
+                className="px-0 py-2.5 align-top first:pr-4 max-sm:block max-sm:py-1 max-sm:pr-0 max-sm:first:pr-0 [&+td]:pr-4"
               >
                 <code className={CHIP}>{cell}</code>
               </TableCell>

@@ -6,13 +6,22 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Toggle } from '@/components/ui/toggle'
 
-import { Card, Demo, FILES, Pane, Rows, SEPARATOR, px } from './shared'
+import {
+  Card,
+  Demo,
+  FILES,
+  Pane,
+  Rows,
+  SEPARATOR,
+  px,
+  usePaneSize,
+} from './shared'
 
 const PIN_TEXT =
   'Pinning holds this text at the width the panel ends the fold with, so the line breaks are measured once instead of on every frame. Turn the pin off and watch the words rewrap the whole way through. Real content pays that cost on every frame too: a code editor relaying out, a virtualised table remeasuring its rows.'
 
 export const PinDemo = () => {
-  const [width, setWidth] = useState(240)
+  const [width, setWidth] = usePaneSize(240, 130)
   const [collapsed, setCollapsed] = useState(false)
   const [pinned, setPinned] = useState(true)
 
@@ -42,8 +51,8 @@ export const PinDemo = () => {
       <Group orientation="horizontal">
         <Pane
           size={width}
-          minSize={160}
-          maxSize={420}
+          minSize="20%"
+          maxSize="55%"
           collapsed={collapsed}
           onCollapsedChange={setCollapsed}
           onSizeChange={setWidth}
