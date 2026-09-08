@@ -195,9 +195,8 @@ export const createPanel = (
     applyFill()
   }
 
-  const fold = (to: number) => {
-    const from = size.get()
-    if (from === 0) {
+  const fold = (to: number, from: number) => {
+    if (size.get() === 0) {
       content.jump(to)
     } else if (to > 0) {
       animate(content, to, timing())
@@ -257,7 +256,7 @@ export const createPanel = (
       }
       if (size.get() !== target) {
         setFolding(true)
-        fold(target)
+        fold(target, size.get())
       }
     },
     move: (offset) => {
@@ -361,6 +360,7 @@ export const createPanel = (
     if (value === target) {
       return
     }
+    const from = target
     target = value
     notify()
     group.notify()
@@ -373,7 +373,7 @@ export const createPanel = (
       content.jump(target)
     } else {
       setFolding(true)
-      fold(target)
+      fold(target, from)
     }
   }
 

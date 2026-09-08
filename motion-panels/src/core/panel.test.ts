@@ -1,9 +1,17 @@
+import type * as Motion from 'motion'
+import { animate } from 'motion'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { noop } from './env'
 import { createPanelGroup } from './group'
 import type { PanelController } from './panel'
 import { createPanel } from './panel'
+
+vi.mock('motion', async (original) => {
+  const motion = await original<typeof Motion>()
+
+  return { ...motion, animate: vi.fn(motion.animate) }
+})
 
 const PARENT_SIZE = 1000
 
@@ -207,6 +215,19 @@ describe('createPanel', () => {
 
     panel.sync({ ...options, collapsed: false, size: 200 })
     expect(panel.motion.content.get()).toBe(200)
+  })
+
+  it('keeps the fold transition when reopened before the close settles', () => {
+    const transition = { type: 'spring' } as const
+    const options = { onCollapsedChange: noop, size: 240, transition }
+    const panel = createPanel(createPanelGroup('horizontal'), options)
+    panel.attach(mount())
+
+    panel.sync({ ...options, collapsed: true })
+    panel.motion.size.jump(120)
+    panel.sync({ ...options, collapsed: false })
+
+    expect(vi.mocked(animate).mock.lastCall?.[2]).toBe(transition)
   })
 
   it('warns when the group cannot place a sized panel', () => {
