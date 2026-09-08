@@ -6,7 +6,7 @@ export const BothEdges = () => (
   <Section
     id="both-edges"
     title="Panels on both edges"
-    lead="Each sized panel finds its own side: one before the filling panel drags on its end edge, one after it on its start edge. Two sized panels around one filling panel need no extra wiring, and again no separators. These two start at a percentage, so they follow the group until the first drag hands back pixels."
+    lead="Each sized panel finds its own side: one before the filling panel drags on its end edge, one after it on its start edge. Two sized panels around one filling panel need no extra wiring, and again no separators. These two are percentages and stay percentages: a drag reports one back, so they keep following the group."
   >
     <BothEdgesDemo />
     <Code

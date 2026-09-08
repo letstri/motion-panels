@@ -13,15 +13,15 @@ import {
 import { useGroup, useIsomorphicLayoutEffect, useStore } from './internal'
 import { Separator } from './separator'
 
-export type SizedPanelProps = HTMLMotionProps<'div'> & {
+export type SizedPanelProps<S extends Size = Size> = HTMLMotionProps<'div'> & {
   collapsed?: boolean
-  defaultSize?: Size
+  defaultSize?: S
   keepMounted?: boolean
   maxSize?: Size
   minSize?: Size
   onCollapsedChange?: (collapsed: boolean) => void
-  onSizeChange?: (size: number) => void
-  size: Size
+  onSizeChange?: (size: S) => void
+  size: S
   transition?: Transition
 }
 
@@ -30,7 +30,9 @@ export type FillPanelProps = HTMLMotionProps<'div'> & {
   size?: undefined
 }
 
-export type PanelProps = FillPanelProps | SizedPanelProps
+export type PanelProps<S extends Size = Size> =
+  | FillPanelProps
+  | SizedPanelProps<S>
 
 const FillPanel = ({ pin, style, transition, ...props }: FillPanelProps) => {
   const {
@@ -74,7 +76,7 @@ const FillPanel = ({ pin, style, transition, ...props }: FillPanelProps) => {
   )
 }
 
-const SizedPanel = ({
+const SizedPanel = <S extends Size>({
   animate,
   collapsed,
   custom,
@@ -90,11 +92,11 @@ const SizedPanel = ({
   style,
   transition,
   ...props
-}: SizedPanelProps) => {
+}: SizedPanelProps<S>) => {
   const group = useGroup()
   const { axes } = group
   const elementRef = useRef<HTMLDivElement>(null)
-  const options: PanelOptions = {
+  const options: PanelOptions<S> = {
     collapsed,
     defaultSize,
     maxSize,
@@ -191,9 +193,9 @@ const SizedPanel = ({
   )
 }
 
-export const Panel = (props: PanelProps) =>
+export const Panel = <S extends Size>(props: PanelProps<S>) =>
   props.size === undefined ? (
-    <FillPanel {...props} />
+    <FillPanel {...(props as FillPanelProps)} />
   ) : (
-    <SizedPanel {...props} />
+    <SizedPanel {...(props as SizedPanelProps<S>)} />
   )

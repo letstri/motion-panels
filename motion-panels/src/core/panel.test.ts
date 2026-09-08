@@ -139,7 +139,7 @@ describe('createPanel', () => {
     })
   })
 
-  it('resolves a percentage size on attach and reports pixels', () => {
+  it('resolves a percentage size on attach and reports a percentage', () => {
     const onSizeChange = vi.fn()
     const group = createPanelGroup('horizontal')
     const panel = createPanel(group, { onSizeChange, size: '20%' })
@@ -150,13 +150,16 @@ describe('createPanel', () => {
     expect(panel.target).toBe(PARENT_SIZE / 5)
 
     panel.drag.start()
-    panel.drag.move({ x: 50, y: 0 })
+    panel.drag.move({ x: 53, y: 0 })
     panel.drag.end()
-    expect(onSizeChange).toHaveBeenCalledWith(PARENT_SIZE / 5 + 50)
+    expect(onSizeChange).toHaveBeenCalledWith('25.3%')
+
+    panel.resizeByKey(key('ArrowRight'))
+    expect(onSizeChange).toHaveBeenLastCalledWith('21%')
 
     panel.sync({ defaultSize: '10%', onSizeChange, size: '20%' })
     panel.reset()
-    expect(onSizeChange).toHaveBeenLastCalledWith(PARENT_SIZE / 10)
+    expect(onSizeChange).toHaveBeenLastCalledWith('10%')
   })
 
   it('follows the group when a percentage panel is resized', () => {

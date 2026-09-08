@@ -1,6 +1,6 @@
 'use client'
 
-import type { Size } from 'motion-panels/react'
+import type { PanelProps, Size } from 'motion-panels/react'
 import { Panel } from 'motion-panels/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
@@ -51,7 +51,7 @@ export const usePaneSize = (wide: number, narrow: number) => {
 
 export const isCompact = () => matchMedia(COMPACT).matches
 
-export const Pane = ({ style, ...props }: ComponentProps<typeof Panel>) => (
+export const Pane = <S extends Size>({ style, ...props }: PanelProps<S>) => (
   <Panel style={{ padding: 3, ...style }} {...props} />
 )
 

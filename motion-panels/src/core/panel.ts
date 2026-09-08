@@ -18,14 +18,15 @@ const KEY_STEP_FAST = 50
 
 export type Size = number | `${number}%`
 
-export interface PanelOptions {
+export interface PanelOptions<S extends Size = Size> {
   collapsed?: boolean
-  defaultSize?: Size
+  defaultSize?: S
   maxSize?: Size
   minSize?: Size
   onCollapsedChange?: (collapsed: boolean) => void
-  onSizeChange?: (size: number) => void
-  size: Size
+  // oxlint-disable-next-line typescript/method-signature-style -- bivariant on purpose: a controller of one form must still register in the group
+  onSizeChange?(size: S): void
+  size: S
   transition?: Transition
 }
 
@@ -49,7 +50,7 @@ export interface PanelDrag {
   start: (cursor?: string) => void
 }
 
-export interface PanelController {
+export interface PanelController<S extends Size = Size> {
   attach: (element: HTMLElement) => () => void
   bounds: () => { max: number; min: number }
   destroy: () => void
@@ -58,12 +59,13 @@ export interface PanelController {
     content: MotionValue<number>
     size: MotionValue<number>
   }
-  options: PanelOptions
+  options: PanelOptions<S>
   reset: () => void
   resizeByKey: (event: PanelKeyEvent) => void
   state: PanelState
   subscribe: (listener: () => void) => () => void
-  sync: (options: PanelOptions, mounting?: boolean) => void
+  // oxlint-disable-next-line typescript/method-signature-style -- bivariant on purpose, see onSizeChange
+  sync(options: PanelOptions<S>, mounting?: boolean): void
   target: number
 }
 
@@ -98,18 +100,30 @@ const warnPlacement = (element: HTMLElement, side: Side) => {
   }
 }
 
-export const createPanel = (
+export const createPanel = <S extends Size>(
   group: PanelGroup,
-  initial: PanelOptions
-): PanelController => {
+  initial: PanelOptions<S>
+): PanelController<S> => {
   const { axes, fill, panels } = group
   const { clear, emit: notify, subscribe } = emitter()
 
   let element: HTMLElement | null = null
-  let options = initial
+  let options: PanelOptions<S> = initial
 
   const extent = () => element?.parentElement?.[axes.client] ?? 0
-  const measure = () => toPixels(options.size, extent())
+  const measure = () => {
+    const pixels = toPixels(options.size, extent())
+
+    return typeof options.size === 'string' ? Math.round(pixels) : pixels
+  }
+  const report = (value: number) => {
+    if (typeof options.size !== 'string') {
+      return value as S
+    }
+    const total = extent()
+
+    return `${total > 0 ? Math.round((value / total) * 10_000) / 100 : 0}%` as S
+  }
 
   const size = motionValue(initial.collapsed ? 0 : measure())
   const content = motionValue(measure())
@@ -255,7 +269,7 @@ export const createPanel = (
       }
       stopDragging()
       if (!session.collapsed) {
-        options.onSizeChange?.(size.get())
+        options.onSizeChange?.(report(size.get()))
       }
       if (size.get() !== target) {
         fold(target, size.get())
@@ -304,7 +318,7 @@ export const createPanel = (
     if (options.collapsed && value > 0) {
       options.onCollapsedChange?.(false)
     }
-    options.onSizeChange?.(value)
+    options.onSizeChange?.(report(value))
   }
 
   const unplace = () => {
@@ -348,7 +362,7 @@ export const createPanel = (
     group.notify()
   }
 
-  const sync = (next: PanelOptions, mounting?: boolean) => {
+  const sync = (next: PanelOptions<S>, mounting?: boolean) => {
     options = next
     place()
     const measured = measure()
@@ -375,7 +389,7 @@ export const createPanel = (
     }
   }
 
-  const controller: PanelController = {
+  const controller: PanelController<S> = {
     attach: (node) => {
       element = node
       place()
@@ -409,9 +423,7 @@ export const createPanel = (
       if (options.collapsed) {
         options.onCollapsedChange?.(false)
       }
-      options.onSizeChange?.(
-        toPixels(options.defaultSize ?? initial.size, extent())
-      )
+      options.onSizeChange?.(options.defaultSize ?? initial.size)
     },
     resizeByKey,
     get state() {
