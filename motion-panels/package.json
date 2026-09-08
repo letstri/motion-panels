@@ -1,7 +1,7 @@
 {
   "name": "motion-panels",
   "displayName": "Motion Panels",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Resizable panels animated with Motion. Framework-agnostic core, unstyled, no layout library.",
   "keywords": [
