@@ -7,7 +7,7 @@ export const QuickStart = () => (
     id="quick-start"
     title="Quick start"
     lead={
-      'A group is a flex container. A panel with a size holds it, a panel without one fills what is left. That is the whole layout. No separator here \u2014 a sized panel is draggable by the edge facing the filling panel, so grab the seam below and pull. Hover any identifier in a snippet to read its real type.'
+      'A group is a flex container. A panel with a size holds it, a panel without one fills what is left. That is the whole layout. A size is pixels, or a percentage of the group that follows it as it resizes; onSizeChange always hands back pixels. No separator here \u2014 a sized panel is draggable by the edge facing the filling panel, so grab the seam below and pull. Hover any identifier in a snippet to read its real type.'
     }
   >
     <HorizontalDemo />

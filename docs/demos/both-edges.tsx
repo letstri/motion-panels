@@ -1,22 +1,14 @@
 'use client'
 
+import type { Size } from 'motion-panels/react'
 import { Group } from 'motion-panels/react'
+import { useState } from 'react'
 
-import {
-  Card,
-  Demo,
-  Editor,
-  FILES,
-  Pane,
-  Rows,
-  SYMBOLS,
-  px,
-  usePaneSize,
-} from './shared'
+import { Card, Demo, Editor, FILES, Pane, Rows, SYMBOLS, px } from './shared'
 
 export const BothEdgesDemo = () => {
-  const [left, setLeft] = usePaneSize(180, 96)
-  const [right, setRight] = usePaneSize(180, 96)
+  const [left, setLeft] = useState<Size>('25%')
+  const [right, setRight] = useState<Size>('25%')
 
   return (
     <Demo>

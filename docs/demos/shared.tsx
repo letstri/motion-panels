@@ -1,5 +1,6 @@
 'use client'
 
+import type { Size } from 'motion-panels/react'
 import { Panel } from 'motion-panels/react'
 import type { ComponentProps, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
@@ -76,8 +77,8 @@ export const Card = ({
   </div>
 )
 
-export const px = (size: number, collapsed?: boolean) =>
-  collapsed ? 'collapsed' : `${size}px`
+export const px = (size: Size, collapsed?: boolean) =>
+  collapsed ? 'collapsed' : typeof size === 'string' ? size : `${size}px`
 
 export const Rows = ({
   active,
