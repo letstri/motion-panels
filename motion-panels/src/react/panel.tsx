@@ -1,5 +1,6 @@
 import type { HTMLMotionProps, Transition } from 'motion/react'
 import { AnimatePresence, motion, useTransform } from 'motion/react'
+import type { ReactElement } from 'react'
 import { useRef, useState } from 'react'
 
 import type { PanelOptions, Size } from '../core'
@@ -13,24 +14,29 @@ import {
 import { useGroup, useIsomorphicLayoutEffect, useStore } from './internal'
 import { Separator } from './separator'
 
-export type SizedPanelProps<S extends Size = Size> = HTMLMotionProps<'div'> & {
-  collapsed?: boolean
-  defaultSize?: S
-  keepMounted?: boolean
-  maxSize?: Size
-  minSize?: Size
-  onCollapsedChange?: (collapsed: boolean) => void
-  onSizeChange?: (size: S) => void
-  size: S
-  transition?: Transition
-}
+/**
+ * `S` follows the size given: a number reports numbers, a percent string
+ * reports percent strings.
+ */
+export type SizedPanelProps<S extends Size = number> =
+  HTMLMotionProps<'div'> & {
+    collapsed?: boolean
+    defaultSize?: S
+    keepMounted?: boolean
+    maxSize?: Size
+    minSize?: Size
+    onCollapsedChange?: (collapsed: boolean) => void
+    onSizeChange?: (size: S) => void
+    size: S
+    transition?: Transition
+  }
 
 export type FillPanelProps = HTMLMotionProps<'div'> & {
   pin?: boolean
   size?: undefined
 }
 
-export type PanelProps<S extends Size = Size> =
+export type PanelProps<S extends Size = number> =
   | FillPanelProps
   | SizedPanelProps<S>
 
@@ -193,9 +199,22 @@ const SizedPanel = <S extends Size>({
   )
 }
 
-export const Panel = <S extends Size>(props: PanelProps<S>) =>
+const render = (props: PanelProps<Size>) =>
   props.size === undefined ? (
-    <FillPanel {...(props as FillPanelProps)} />
+    <FillPanel {...props} />
   ) : (
-    <SizedPanel {...(props as SizedPanelProps<S>)} />
+    <SizedPanel {...props} />
   )
+
+/**
+ * Overloads, not one generic signature: `ComponentProps<typeof Panel>` in a
+ * wrapper reads the last one, and a lone generic would resolve there to its
+ * constraint and hand the wrapper's consumers `Size` instead of the number they
+ * passed. The last signature is the pixel union, so a wrapper still forwards a
+ * filling panel; one that forwards percentages takes `PanelProps<Size>` and
+ * spreads it as `PanelProps`.
+ */
+export const Panel = render as {
+  <S extends Size>(props: SizedPanelProps<S>): ReactElement
+  (props: PanelProps): ReactElement
+}

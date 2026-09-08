@@ -29,7 +29,7 @@ export const API: {
       [
         'onSizeChange',
         '(size: number) => void',
-        'Called with the new size as a drag or key press lands, in the form size was given: a number reports pixels, a percent string reports a percentage.',
+        'Called with the new size as a drag or key press lands, in the form size was given: a number reports pixels, a percent string reports a percentage. A wrapper component reading ComponentProps sees the pixel form; one that forwards percentages takes PanelProps<Size>.',
       ],
       [
         'defaultSize',

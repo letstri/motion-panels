@@ -51,8 +51,9 @@ export const usePaneSize = (wide: number, narrow: number) => {
 
 export const isCompact = () => matchMedia(COMPACT).matches
 
+// Panel is overloaded, and a union argument only lands on its pixel signature.
 export const Pane = <S extends Size>({ style, ...props }: PanelProps<S>) => (
-  <Panel style={{ padding: 3, ...style }} {...props} />
+  <Panel style={{ padding: 3, ...style }} {...(props as PanelProps)} />
 )
 
 export const Card = ({
