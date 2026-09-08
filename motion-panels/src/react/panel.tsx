@@ -15,13 +15,13 @@ import { Separator } from './separator'
 
 export type SizedPanelProps = HTMLMotionProps<'div'> & {
   collapsed?: boolean
-  defaultSize?: number
+  defaultSize?: Size
   keepMounted?: boolean
   maxSize?: Size
   minSize?: Size
   onCollapsedChange?: (collapsed: boolean) => void
   onSizeChange?: (size: number) => void
-  size: number
+  size: Size
   transition?: Transition
 }
 

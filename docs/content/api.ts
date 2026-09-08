@@ -23,17 +23,17 @@ export const API: {
     props: [
       [
         'size',
-        'number',
-        'Current size in pixels. Omit it and the panel fills what is left.',
+        'number | percent string',
+        'Current size, in pixels or as a percentage of the group extent. A percentage follows the group as it resizes. Omit it and the panel fills what is left.',
       ],
       [
         'onSizeChange',
         '(size: number) => void',
-        'Called with the new size as a drag or key press lands.',
+        'Called with the new size, always in pixels, as a drag or key press lands.',
       ],
       [
         'defaultSize',
-        'number',
+        'number | percent string',
         'Size a double-click on the separator resets to. Defaults to the size the panel mounted with.',
       ],
       [

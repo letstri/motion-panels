@@ -16,17 +16,16 @@ import { clamp, emitter } from './utils'
 const KEY_STEP = 10
 const KEY_STEP_FAST = 50
 
-/** Pixels, or a percentage of the group extent such as `'30%'`. */
 export type Size = number | `${number}%`
 
 export interface PanelOptions {
   collapsed?: boolean
-  defaultSize?: number
+  defaultSize?: Size
   maxSize?: Size
   minSize?: Size
   onCollapsedChange?: (collapsed: boolean) => void
   onSizeChange?: (size: number) => void
-  size: number
+  size: Size
   transition?: Transition
 }
 
@@ -71,7 +70,7 @@ export interface PanelController {
 const DEV =
   typeof process === 'undefined' || process.env.NODE_ENV !== 'production'
 
-const toPixels = (value: Size | undefined, extent: number) =>
+const toPixels = (value: Size, extent: number) =>
   typeof value === 'string'
     ? (Number(value.slice(0, -1)) / 100) * extent
     : value
@@ -105,11 +104,16 @@ export const createPanel = (
 ): PanelController => {
   const { axes, fill, panels } = group
   const { clear, emit: notify, subscribe } = emitter()
-  const size = motionValue(initial.collapsed ? 0 : initial.size)
-  const content = motionValue(initial.size)
 
   let element: HTMLElement | null = null
   let options = initial
+
+  const extent = () => element?.parentElement?.[axes.client] ?? 0
+  const measure = () => toPixels(options.size, extent())
+
+  const size = motionValue(initial.collapsed ? 0 : measure())
+  const content = motionValue(measure())
+
   let target = size.get()
   let state: PanelState = {
     bare: false,
@@ -136,8 +140,6 @@ export const createPanel = (
     }
   }
 
-  const extent = () => element?.parentElement?.[axes.client] ?? 0
-
   const freeSpace = () => {
     let free = extent()
     for (const panel of panels.values()) {
@@ -152,8 +154,14 @@ export const createPanel = (
   const bounds = () => {
     const available = Math.max(0, freeSpace())
     const total = extent()
-    const min = Math.min(toPixels(options.minSize, total) ?? 0, available)
-    const max = toPixels(options.maxSize, total) ?? available
+    const min = Math.min(
+      options.minSize === undefined ? 0 : toPixels(options.minSize, total),
+      available
+    )
+    const max =
+      options.maxSize === undefined
+        ? available
+        : toPixels(options.maxSize, total)
 
     return { max: Math.max(min, Math.min(max, available)), min }
   }
@@ -325,13 +333,29 @@ export const createPanel = (
     patch({ bare: !isSeparator(neighbour), end })
   }
 
+  const refit = () => {
+    if (typeof options.size !== 'string' || state.dragging || state.folding) {
+      return
+    }
+    const value = options.collapsed ? 0 : measure()
+    content.jump(measure())
+    if (value === target) {
+      return
+    }
+    target = value
+    size.jump(target)
+    notify()
+    group.notify()
+  }
+
   const sync = (next: PanelOptions, mounting?: boolean) => {
     options = next
     place()
+    const measured = measure()
     if (size.get() === 0 && !state.dragging) {
-      content.jump(next.size)
+      content.jump(measured)
     }
-    const value = next.collapsed ? 0 : next.size
+    const value = next.collapsed ? 0 : measured
     if (value === target) {
       return
     }
@@ -355,8 +379,15 @@ export const createPanel = (
     attach: (node) => {
       element = node
       place()
+      refit()
+      const parent = node.parentElement
+      const watch = parent ? new ResizeObserver(refit) : undefined
+      if (parent) {
+        watch?.observe(parent)
+      }
 
       return () => {
+        watch?.disconnect()
         release()
         unplace()
         element = null
@@ -378,7 +409,9 @@ export const createPanel = (
       if (options.collapsed) {
         options.onCollapsedChange?.(false)
       }
-      options.onSizeChange?.(options.defaultSize ?? initial.size)
+      options.onSizeChange?.(
+        toPixels(options.defaultSize ?? initial.size, extent())
+      )
     },
     resizeByKey,
     get state() {

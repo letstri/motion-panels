@@ -33,7 +33,10 @@ const mount = (options?: { fillFirst?: boolean }) => {
     parent.append(panel, fill)
   }
   document.body.append(parent)
-  Object.defineProperty(parent, 'clientWidth', { value: PARENT_SIZE })
+  Object.defineProperty(parent, 'clientWidth', {
+    configurable: true,
+    value: PARENT_SIZE,
+  })
 
   return panel
 }
@@ -134,6 +137,58 @@ describe('createPanel', () => {
       max: PARENT_SIZE / 2,
       min: PARENT_SIZE / 10,
     })
+  })
+
+  it('resolves a percentage size on attach and reports pixels', () => {
+    const onSizeChange = vi.fn()
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, { onSizeChange, size: '20%' })
+    panel.attach(mount())
+
+    expect(panel.motion.size.get()).toBe(PARENT_SIZE / 5)
+    expect(panel.motion.content.get()).toBe(PARENT_SIZE / 5)
+    expect(panel.target).toBe(PARENT_SIZE / 5)
+
+    panel.drag.start()
+    panel.drag.move({ x: 50, y: 0 })
+    panel.drag.end()
+    expect(onSizeChange).toHaveBeenCalledWith(PARENT_SIZE / 5 + 50)
+
+    panel.sync({ defaultSize: '10%', onSizeChange, size: '20%' })
+    panel.reset()
+    expect(onSizeChange).toHaveBeenLastCalledWith(PARENT_SIZE / 10)
+  })
+
+  it('follows the group when a percentage panel is resized', () => {
+    let refit: ResizeObserverCallback = noop
+    const observe = vi.fn()
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        disconnect = noop
+        observe = observe
+        constructor(notify: ResizeObserverCallback) {
+          refit = notify
+        }
+      }
+    )
+    const panel = createPanel(createPanelGroup('horizontal'), { size: '20%' })
+    const element = mount()
+    const parent = element.parentElement!
+    panel.attach(element)
+    expect(observe).toHaveBeenCalledWith(parent)
+    vi.mocked(animate).mockClear()
+
+    Object.defineProperty(parent, 'clientWidth', {
+      configurable: true,
+      value: 500,
+    })
+    refit([], {} as ResizeObserver)
+
+    expect(panel.motion.size.get()).toBe(100)
+    expect(panel.target).toBe(100)
+    expect(animate).not.toHaveBeenCalled()
+    vi.unstubAllGlobals()
   })
 
   it('collapses past half the minimum and restores on cancel', () => {
