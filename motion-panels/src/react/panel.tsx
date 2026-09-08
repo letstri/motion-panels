@@ -119,12 +119,7 @@ const SizedPanel = ({
   const state = usePanelState(panel)
   const edge = useEdgeSize()
   useReducedMotion()
-  const rendered = useTransform(panel.motion.size, (value) =>
-    Math.max(0, value)
-  )
-  const overshoot = useTransform(panel.motion.size, (value) =>
-    Math.min(0, value)
-  )
+  const rendered = useTransform(panel.motion.size, Math.abs)
 
   useIsomorphicLayoutEffect(() => {
     panel.sync(options)
@@ -151,7 +146,6 @@ const SizedPanel = ({
           collapsed || state.dragging || state.folding ? 'clip' : 'visible',
         position: 'relative',
         [axes.extent]: rendered,
-        [`margin${axes.axis}${state.end ? 'End' : 'Start'}`]: overshoot,
       }}
     >
       <AnimatePresence custom={props.custom} initial={false}>
