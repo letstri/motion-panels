@@ -59,7 +59,7 @@ A panel is _sized_ when given `size`, and _filling_ otherwise.
 - `transition` — Motion transition for folding. Defaults to a 250ms ease; automatically becomes instant under `prefers-reduced-motion: reduce`.
 - `pin` (filling panels only) — keeps the content at its final size and clipped while a sized panel folds, so heavy content (an editor, a virtualised table) lays out once per fold instead of once per frame. The content is anchored to the edge that is not moving, so it holds still while the panel edge slides across it. Off by default. Pin content that bleeds to its own edges; a block with its own border or rounded corners shows that edge jumping instead.
 
-A sized panel renders two elements: an outer box that carries the animated extent, and the content box that takes your `style`, `className` and the rest of the props. `initial` / `animate` / `exit` apply to the content, so it can fade or slide while the box folds.
+A sized panel renders two elements: an outer box that carries the animated extent, and the content box that takes your `style`, `className` and the rest of the props. `initial` / `animate` / `exit` apply to the content, so it can fade or slide while the box folds. The content is anchored to the panel's still edge — the one away from the filling panel — so it holds its place while the folding edge sweeps across it, which is also the edge a `scale` wants as its origin.
 
 A sized panel can always be dragged by the edge facing the filling panel, `Separator` or not.
 

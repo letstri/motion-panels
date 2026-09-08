@@ -69,24 +69,33 @@ export interface PanelController {
   target: number
 }
 
+let locks = 0
+let previous: Partial<CSSStyleDeclaration> = {}
+
 const lockBody = (cursor: string, onEscape: () => void) => {
   const { style } = document.body
-  const previous = {
-    cursor: style.cursor,
-    userSelect: style.userSelect,
-    webkitUserSelect: style.webkitUserSelect,
-  }
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       event.preventDefault()
       onEscape()
     }
   }
+  if (locks === 0) {
+    previous = {
+      cursor: style.cursor,
+      userSelect: style.userSelect,
+      webkitUserSelect: style.webkitUserSelect,
+    }
+  }
+  locks += 1
   Object.assign(style, { cursor, userSelect: 'none', webkitUserSelect: 'none' })
   addEventListener('keydown', onKeyDown, true)
 
   return () => {
-    Object.assign(style, previous)
+    locks -= 1
+    if (locks === 0) {
+      Object.assign(style, previous)
+    }
     removeEventListener('keydown', onKeyDown, true)
   }
 }
@@ -94,8 +103,6 @@ const lockBody = (cursor: string, onEscape: () => void) => {
 const DEV =
   typeof process === 'undefined' || process.env.NODE_ENV !== 'production'
 
-/** Counts the sized panels either side of the fill: every direct child of the
- * group that is neither the filling panel nor a separator. */
 const warnPlacement = (element: HTMLElement, side: Side) => {
   if (!DEV) {
     return
@@ -158,7 +165,7 @@ export const createPanel = (
   }
 
   const spare = () => {
-    let free = element?.parentElement?.[axes.offset] ?? 0
+    let free = element?.parentElement?.[axes.client] ?? 0
     for (const panel of panels.values()) {
       if (panel !== controller) {
         free -= panel.target

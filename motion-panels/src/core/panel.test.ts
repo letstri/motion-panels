@@ -25,7 +25,7 @@ const mount = (options?: { fillFirst?: boolean }) => {
     parent.append(panel, fill)
   }
   document.body.append(parent)
-  Object.defineProperty(parent, 'offsetWidth', { value: PARENT_SIZE })
+  Object.defineProperty(parent, 'clientWidth', { value: PARENT_SIZE })
 
   return panel
 }
@@ -237,6 +237,21 @@ describe('createPanel', () => {
     expect(warn.mock.lastCall?.[0]).toContain('sized panels sit on the "start"')
 
     warn.mockRestore()
+  })
+
+  it('restores the body cursor after two panels drag together', () => {
+    const first = createPanel(createPanelGroup('horizontal'), { size: 200 })
+    const second = createPanel(createPanelGroup('horizontal'), { size: 200 })
+    first.attach(mount())
+    second.attach(mount())
+
+    first.drag.start('move')
+    second.drag.start('move')
+    expect(document.body.style.cursor).toBe('move')
+
+    first.drag.end()
+    second.drag.end()
+    expect(document.body.style.cursor).toBe('')
   })
 
   it('expands a collapsed panel from the keyboard', () => {

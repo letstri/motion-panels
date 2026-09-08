@@ -146,7 +146,7 @@ const SizedPanel = ({
         display: 'flex',
         flexDirection: axes.direction,
         flexShrink: 0,
-        justifyContent: state.end ? 'flex-end' : 'flex-start',
+        justifyContent: state.end ? 'flex-start' : 'flex-end',
         overflow:
           collapsed || state.dragging || state.folding ? 'clip' : 'visible',
         position: 'relative',
