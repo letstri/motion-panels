@@ -15,11 +15,12 @@ type Equal<A, B> =
 
 type Expect<T extends true> = T
 
-type Reports<P> =
-  NonNullable<Extract<P, { onSizeChange?: unknown }>['onSizeChange']> extends (
-    size: infer S
-  ) => void
-    ? S
+/** What onSizeChange hands back for the member of `P` sized as `S`. */
+type Reports<P, S extends Size> =
+  Extract<P, { size: S }> extends {
+    onSizeChange?: (size: infer Reported) => void
+  }
+    ? Reported
     : never
 
 // The wrapper every consumer writes around a component like this one.
@@ -28,14 +29,18 @@ const Wrapper = (props: ComponentProps<typeof Panel>) => <Panel {...props} />
 type WrapperProps = ComponentProps<typeof Wrapper>
 
 export type Checks = [
-  // A wrapper hands its consumers pixels, not the widest size a panel accepts.
-  Expect<Equal<Reports<WrapperProps>, number>>,
-  // And still forwards a filling panel, which carries no size at all.
+  // Through a wrapper, each size still reports its own form.
+  Expect<Equal<Reports<WrapperProps, number>, number>>,
+  Expect<Equal<Reports<WrapperProps, `${number}%`>, `${number}%`>>,
+  // And a filling panel, which carries no size at all, still passes through.
   Expect<Equal<Extract<WrapperProps, { size?: undefined }>['size'], undefined>>,
-  // Straight on Panel, each form reports itself.
-  Expect<Equal<Reports<Parameters<typeof Panel<number>>[0]>, number>>,
+  // Straight on Panel, both forms and a size held as Size.
+  Expect<Equal<Reports<Parameters<typeof Panel<number>>[0], number>, number>>,
   Expect<
-    Equal<Reports<Parameters<typeof Panel<`${number}%`>>[0]>, `${number}%`>
+    Equal<
+      Reports<Parameters<typeof Panel<`${number}%`>>[0], `${number}%`>,
+      `${number}%`
+    >
   >,
-  Expect<Equal<Reports<Extract<PanelProps<Size>, { size: Size }>>, Size>>,
+  Expect<Equal<Reports<PanelProps<Size>, Size>, Size>>,
 ]

@@ -40,6 +40,16 @@ export type PanelProps<S extends Size = number> =
   | FillPanelProps
   | SizedPanelProps<S>
 
+/**
+ * What a wrapper sees through `ComponentProps<typeof Panel>`: the two sized
+ * shapes side by side rather than one over `Size`, so the size a call passes
+ * still picks the form its onSizeChange reports.
+ */
+export type AnyPanelProps =
+  | FillPanelProps
+  | SizedPanelProps
+  | SizedPanelProps<`${number}%`>
+
 const FillPanel = ({ pin, style, transition, ...props }: FillPanelProps) => {
   const {
     axes: { cross, direction, extent },
@@ -209,12 +219,11 @@ const render = (props: PanelProps<Size>) =>
 /**
  * Overloads, not one generic signature: `ComponentProps<typeof Panel>` in a
  * wrapper reads the last one, and a lone generic would resolve there to its
- * constraint and hand the wrapper's consumers `Size` instead of the number they
- * passed. The last signature is the pixel union, so a wrapper still forwards a
- * filling panel; one that forwards percentages takes `PanelProps<Size>` and
- * spreads it as `PanelProps`.
+ * constraint, handing the wrapper's consumers `Size` instead of the form they
+ * passed. The last signature is the shapes side by side, which a call site
+ * narrows on its own size.
  */
 export const Panel = render as {
   <S extends Size>(props: SizedPanelProps<S>): ReactElement
-  (props: PanelProps): ReactElement
+  (props: AnyPanelProps): ReactElement
 }
