@@ -1,7 +1,12 @@
 'use client'
 
 import { cn } from 'cn'
-import { createPanel, createPanelGroup, FILL_ATTRIBUTE } from 'motion-panels'
+import {
+  attachSeparator,
+  createPanel,
+  createPanelGroup,
+  FILL_ATTRIBUTE,
+} from 'motion-panels'
 import { useEffect, useRef } from 'react'
 
 import { badgeVariants } from '@/components/ui/badge'
@@ -63,12 +68,12 @@ const mountSplit = (root: HTMLElement) => {
     minSize: 160,
     onSizeChange: (next: number) => {
       size = next
-      grip.ariaValueNow = String(size)
       controller.sync({ ...base, size })
     },
   }
   const controller = createPanel(group, { ...base, size })
   const detach = controller.attach(panel)
+  const detachGrip = attachSeparator(grip, group, controller)
 
   const label = content.querySelector('span:last-child')
   const stopSize = controller.motion.size.on('change', (value) => {
@@ -83,47 +88,9 @@ const mountSplit = (root: HTMLElement) => {
   })
 
   content.style.width = `${size}px`
-  grip.ariaValueNow = String(size)
-
-  let dragged = false
-
-  const onPointerDown = (event: PointerEvent) => {
-    const origin = { x: event.clientX, y: event.clientY }
-    dragged = false
-    grip.setPointerCapture(event.pointerId)
-    controller.drag.start()
-
-    const onMove = (move: PointerEvent) => {
-      dragged = true
-      controller.drag.move({
-        x: move.clientX - origin.x,
-        y: move.clientY - origin.y,
-      })
-    }
-    const onUp = () => {
-      controller.drag.end()
-      grip.removeEventListener('pointermove', onMove)
-      grip.removeEventListener('pointerup', onUp)
-    }
-
-    grip.addEventListener('pointermove', onMove)
-    grip.addEventListener('pointerup', onUp)
-  }
-  const onKeyDown = (event: KeyboardEvent) => controller.resizeByKey(event)
-  const onDoubleClick = () => {
-    if (!dragged) {
-      controller.reset()
-    }
-  }
-
-  grip.addEventListener('pointerdown', onPointerDown)
-  grip.addEventListener('keydown', onKeyDown)
-  grip.addEventListener('dblclick', onDoubleClick)
 
   return () => {
-    grip.removeEventListener('pointerdown', onPointerDown)
-    grip.removeEventListener('keydown', onKeyDown)
-    grip.removeEventListener('dblclick', onDoubleClick)
+    detachGrip()
     stopContent()
     stopSize()
     detach()

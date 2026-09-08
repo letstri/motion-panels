@@ -1,5 +1,6 @@
-import { coarsePointer, emitter } from './env'
+import { coarsePointer } from './env'
 import type { PanelController } from './panel'
+import { emitter } from './utils'
 
 const HIT_MARGIN_FINE = 5
 const HIT_MARGIN_COARSE = 12
@@ -31,7 +32,7 @@ const measure = () => {
   return rects
 }
 
-const same = (elements: HTMLElement[], current: Set<HTMLElement>) =>
+const sameSet = (elements: HTMLElement[], current: Set<HTMLElement>) =>
   elements.length === current.size &&
   elements.every((element) => current.has(element))
 
@@ -55,7 +56,7 @@ export const grips = {
   },
   invalidate,
   mark(key: 'crossed' | 'held', elements: HTMLElement[]) {
-    if (same(elements, marks[key])) {
+    if (sameSet(elements, marks[key])) {
       return
     }
     marks[key] = new Set(elements)

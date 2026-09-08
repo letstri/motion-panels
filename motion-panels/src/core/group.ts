@@ -3,8 +3,8 @@ import { motionValue } from 'motion'
 
 import type { Axes, Orientation, Side } from './axes'
 import { AXES } from './axes'
-import { emitter } from './env'
 import type { PanelController } from './panel'
+import { emitter } from './utils'
 
 export interface PanelGroup {
   axes: Axes

@@ -1,11 +1,9 @@
 import type { Transition } from 'motion/react'
-import { animate } from 'motion/react'
 import type { ComponentProps, ReactNode } from 'react'
-import { isValidElement, useContext, useMemo, useRef } from 'react'
+import { isValidElement, useContext, useRef, useState } from 'react'
 
 import type { Orientation } from '../core'
-import { createPanelGroup, FILL_ATTRIBUTE, SEPARATOR_ATTRIBUTE } from '../core'
-import { timing } from '../core/panel'
+import { createPanelGroup, reorder } from '../core'
 import { GroupContext, useIsomorphicLayoutEffect } from './internal'
 
 export type GroupProps = ComponentProps<'div'> & {
@@ -13,7 +11,7 @@ export type GroupProps = ComponentProps<'div'> & {
   transition?: Transition
 }
 
-const keysOf = (children: ReactNode) =>
+const childKeys = (children: ReactNode) =>
   String([children].flat().map((child) => isValidElement(child) && child.key))
 
 export const Group = ({
@@ -24,57 +22,28 @@ export const Group = ({
   ...props
 }: GroupProps) => {
   const parent = useContext(GroupContext)
-  const group = useMemo(() => createPanelGroup(orientation), [orientation])
+  // oxlint-disable-next-line react/hook-use-state -- created once, never replaced
+  const [group] = useState(() => createPanelGroup(orientation))
   const root = useRef<HTMLDivElement>(null)
-  const { direction, point } = group.axes
-  const edge = point === 'x' ? 'left' : 'top'
+  const { axes } = group
 
-  const keys = keysOf(children)
-  const last = useRef(keys)
+  const keys = childKeys(children)
+  const lastKeys = useRef(keys)
   const before = useRef<Map<Element, number> | null>(null)
   /* oxlint-disable react/refs -- getSnapshotBeforeUpdate has no hook form */
-  if (keys !== last.current && root.current) {
-    last.current = keys
-    before.current = new Map(
-      [...root.current.children].map(
-        (child) => [child, child.getBoundingClientRect()[edge]] as const
-      )
-    )
+  if (keys !== lastKeys.current && root.current) {
+    lastKeys.current = keys
+    before.current = reorder.measure(root.current, axes)
   }
   /* oxlint-enable react/refs */
 
   useIsomorphicLayoutEffect(() => {
     const boxes = before.current
     before.current = null
-    for (const [child, from] of boxes ?? []) {
-      const delta = from - child.getBoundingClientRect()[edge]
-      if (
-        delta === 0 ||
-        !child.isConnected ||
-        !(child instanceof HTMLElement)
-      ) {
-        continue
-      }
-      const lift =
-        !child.hasAttribute(FILL_ATTRIBUTE) &&
-        !child.hasAttribute(SEPARATOR_ATTRIBUTE)
-      if (lift) {
-        child.style.zIndex = '1'
-      }
-      animate(
-        child,
-        { [point]: [delta, 0] },
-        {
-          ...timing(transition),
-          onComplete: () => {
-            if (lift) {
-              child.style.zIndex = ''
-            }
-          },
-        }
-      )
+    if (boxes) {
+      reorder.play(boxes, axes, transition)
     }
-  }, [edge, keys, point, transition])
+  }, [axes, keys, transition])
 
   return (
     <GroupContext.Provider value={group}>
@@ -82,7 +51,7 @@ export const Group = ({
         ref={root}
         style={{
           display: 'flex',
-          flexDirection: direction,
+          flexDirection: axes.direction,
           height: '100%',
           overflow: parent ? undefined : 'clip',
           width: '100%',

@@ -2,10 +2,10 @@ import type * as Motion from 'motion'
 import { animate } from 'motion'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { noop } from './env'
 import { createPanelGroup } from './group'
 import type { PanelController } from './panel'
 import { createPanel } from './panel'
+import { noop } from './utils'
 
 vi.mock('motion', async (original) => {
   const motion = await original<typeof Motion>()
@@ -121,6 +121,21 @@ describe('createPanel', () => {
     expect(panel.bounds()).toEqual({ max: PARENT_SIZE - 300, min: 0 })
   })
 
+  it('resolves percentage bounds against the group extent', () => {
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, {
+      maxSize: '50%',
+      minSize: '10%',
+      size: 200,
+    })
+    panel.attach(mount())
+
+    expect(panel.bounds()).toEqual({
+      max: PARENT_SIZE / 2,
+      min: PARENT_SIZE / 10,
+    })
+  })
+
   it('collapses past half the minimum and restores on cancel', () => {
     const onCollapsedChange = vi.fn()
     const onSizeChange = vi.fn()
@@ -183,7 +198,7 @@ describe('createPanel', () => {
     expect(onSizeChange).toHaveBeenLastCalledWith(150)
   })
 
-  it('resets to the mounted size, or to resetSize when given', () => {
+  it('resets to the mounted size, or to defaultSize when given', () => {
     const onSizeChange = vi.fn()
     const panel = createPanel(createPanelGroup('horizontal'), {
       onSizeChange,
@@ -195,7 +210,7 @@ describe('createPanel', () => {
     panel.reset()
     expect(onSizeChange).toHaveBeenLastCalledWith(200)
 
-    panel.sync({ onSizeChange, resetSize: 90, size: 320 })
+    panel.sync({ defaultSize: 90, onSizeChange, size: 320 })
     panel.reset()
     expect(onSizeChange).toHaveBeenLastCalledWith(90)
   })
@@ -217,7 +232,7 @@ describe('createPanel', () => {
     expect(panel.motion.content.get()).toBe(200)
   })
 
-  it('keeps the fold transition when reopened before the close settles', () => {
+  it('keeps the fold transition when reopened before the close settles', async () => {
     const transition = { type: 'spring' } as const
     const options = { onCollapsedChange: noop, size: 240, transition }
     const panel = createPanel(createPanelGroup('horizontal'), options)
@@ -226,6 +241,7 @@ describe('createPanel', () => {
     panel.sync({ ...options, collapsed: true })
     panel.motion.size.jump(120)
     panel.sync({ ...options, collapsed: false })
+    await Promise.resolve()
 
     expect(vi.mocked(animate).mock.lastCall?.[2]).toBe(transition)
   })

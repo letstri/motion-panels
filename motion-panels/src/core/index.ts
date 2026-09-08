@@ -1,7 +1,6 @@
 export type { Axes, Orientation, Side } from './axes'
-export { AXES } from './axes'
-export { coarsePointer, EDGE_SIZE_FINE, edgeSize, reducedMotion } from './env'
-export { FILL_ATTRIBUTE, hasFillAfter, SEPARATOR_ATTRIBUTE } from './dom'
+export { FILL_ATTRIBUTE, SEPARATOR_ATTRIBUTE } from './dom'
+export { coarsePointer, edgeSize, reducedMotion } from './env'
 export type { GripState, Point } from './grips'
 export { grips } from './grips'
 export type { PanelGroup } from './group'
@@ -12,5 +11,9 @@ export type {
   PanelKeyEvent,
   PanelOptions,
   PanelState,
+  Size,
 } from './panel'
-export { createPanel, timing, TRANSITION } from './panel'
+export { createPanel } from './panel'
+export { reorder } from './reorder'
+export { attachSeparator } from './separator'
+export { timing, TRANSITION } from './transition'

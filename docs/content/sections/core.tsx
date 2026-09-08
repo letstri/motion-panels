@@ -15,7 +15,7 @@ export const Core = () => (
     <CoreDemo />
     <Code
       code={`
-import { createPanel, createPanelGroup, FILL_ATTRIBUTE } from 'motion-panels'
+import { attachSeparator, createPanel, createPanelGroup, FILL_ATTRIBUTE } from 'motion-panels'
 
 export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElement, grip: HTMLElement) {
   const group = createPanelGroup('horizontal')
@@ -43,28 +43,10 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
   grip.role = 'separator'
   grip.tabIndex = 0
   grip.ariaOrientation = group.axes.separator
-
-  grip.addEventListener('pointerdown', (event) => {
-    const origin = { x: event.clientX, y: event.clientY }
-    grip.setPointerCapture(event.pointerId)
-    controller.drag.start()
-
-    const onMove = (move: PointerEvent) =>
-      controller.drag.move({ x: move.clientX - origin.x, y: move.clientY - origin.y })
-    const onUp = () => {
-      controller.drag.end()
-      grip.removeEventListener('pointermove', onMove)
-      grip.removeEventListener('pointerup', onUp)
-    }
-
-    grip.addEventListener('pointermove', onMove)
-    grip.addEventListener('pointerup', onUp)
-  })
-
-  grip.addEventListener('keydown', (event) => controller.resizeByKey(event))
-  grip.addEventListener('dblclick', () => controller.reset())
+  const detachGrip = attachSeparator(grip, group, controller)
 
   return () => {
+    detachGrip()
     detach()
     controller.destroy()
   }
@@ -74,9 +56,12 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
     <p className={ASIDE}>
       <code className={CHIP}>attach</code> reads the panel&apos;s place in the
       group — which side of the filling panel it sits on, and so which edge
-      drags — and returns the detach. <code className={CHIP}>sync</code> feeds
-      it new options on every state change, the same call the React adapter
-      makes in a layout effect. Everything else is state you already own.
+      drags — and returns the detach.{' '}
+      <code className={CHIP}>attachSeparator</code> wires the separator: pointer
+      drags and crossings, keyboard, double-click reset, and the live aria-value
+      and data attributes. <code className={CHIP}>sync</code> feeds the panel
+      new options on every state change, the same calls the React adapter makes
+      in layout effects. Everything else is state you already own.
     </p>
     <Subheading>What every element needs</Subheading>
     <p className={`${LEAD} mt-3`}>
@@ -105,7 +90,7 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
         ],
         [
           'separator',
-          "role='separator', tabIndex, aria-orientation from axes.separator, and aria-valuenow from controller.target.",
+          "role='separator', tabIndex, aria-orientation from axes.separator, touch-action: none, and attachSeparator. It writes aria-valuenow, data-resizing and data-crossing itself.",
         ],
         [
           'pinned fill',
@@ -113,18 +98,18 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
         ],
       ]}
     />
-    <Subheading>Folds and crossings</Subheading>
+    <Subheading>Folds and reorders</Subheading>
     <p className={`${LEAD} mt-3`}>
-      The demo above stops at a drag. Two more calls carry the rest: a fold is
-      one sync away, and a crossing is the grip registry handing you the
-      separators that share the point you pressed.
+      The demo above stops at a drag. A fold is one sync away, and a reorder is
+      two calls around the DOM change: measure the children before, play the
+      trip after.
     </p>
     <Code
       code={`
-import type { PanelController, PanelOptions } from 'motion-panels'
-import { grips } from 'motion-panels'
+import type { PanelController, PanelGroup, PanelOptions } from 'motion-panels'
+import { reorder } from 'motion-panels'
 
-export function wireExtras(controller: PanelController, options: PanelOptions, content: HTMLElement, grip: HTMLElement, toggle: HTMLElement) {
+export function wireExtras(controller: PanelController, options: PanelOptions, content: HTMLElement, toggle: HTMLElement) {
   let collapsed = false
 
   toggle.addEventListener('click', () => {
@@ -135,30 +120,12 @@ export function wireExtras(controller: PanelController, options: PanelOptions, c
   controller.motion.content.on('change', (value) => {
     content.style.width = \`\${value}px\`
   })
+}
 
-  const stop = controller.subscribe(() => {
-    grip.toggleAttribute('data-resizing', controller.state.dragging)
-  })
-
-  const unregister = grips.register(grip, controller)
-
-  grip.addEventListener('pointerdown', (event) => {
-    grips.invalidate()
-    const crossed = grips.at(event)
-    const partners = grips.partners(crossed, grip)
-    const cursor = partners.length > 0 ? 'move' : undefined
-
-    grips.mark('held', crossed)
-    controller.drag.start(cursor)
-    for (const partner of partners) {
-      partner.drag.start(cursor)
-    }
-  })
-
-  return () => {
-    unregister()
-    stop()
-  }
+export function move(root: HTMLElement, axes: PanelGroup['axes'], change: () => void) {
+  const before = reorder.measure(root, axes)
+  change()
+  reorder.play(before, axes)
 }
 `}
     />

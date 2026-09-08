@@ -1,9 +1,20 @@
-import { createContext, useContext, useEffect, useLayoutEffect } from 'react'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useSyncExternalStore,
+} from 'react'
 
 import type { PanelGroup } from '../core'
 
 export const useIsomorphicLayoutEffect =
   typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+export const useStore = <T>(
+  subscribe: (listener: () => void) => () => void,
+  get: () => T
+) => useSyncExternalStore(subscribe, get, get)
 
 export const GroupContext = createContext<PanelGroup | null>(null)
 

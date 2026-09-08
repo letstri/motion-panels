@@ -1,8 +1,6 @@
 {
   "name": "motion-panels",
-  "displayName": "Motion Panels",
-  "version": "0.1.2",
-  "private": false,
+  "version": "0.2.0",
   "description": "Resizable panels animated with Motion. Framework-agnostic core, unstyled, no layout library.",
   "keywords": [
     "animation",
@@ -14,8 +12,7 @@
     "resizable",
     "resizable-panels",
     "split-pane",
-    "splitter",
-    "vue"
+    "splitter"
   ],
   "homepage": "https://github.com/letstri/motion-panels",
   "bugs": {

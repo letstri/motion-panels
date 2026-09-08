@@ -32,14 +32,14 @@ export const API: {
         'Called with the new size as a drag or key press lands.',
       ],
       [
-        'resetSize',
+        'defaultSize',
         'number',
         'Size a double-click on the separator resets to. Defaults to the size the panel mounted with.',
       ],
       [
         'minSize / maxSize',
-        'number',
-        'Drag and keyboard bounds. Max defaults to the group extent.',
+        'number | percent string',
+        'Drag and keyboard bounds, in pixels or as a percentage of the group extent. Max defaults to the group extent.',
       ],
       [
         'collapsed',
@@ -50,6 +50,11 @@ export const API: {
         'onCollapsedChange',
         '(collapsed: boolean) => void',
         'Required for drag-to-collapse and Enter-to-toggle.',
+      ],
+      [
+        'keepMounted',
+        'boolean (default true)',
+        'Keeps the content mounted once the panel has been open, clipped at zero while collapsed, so reopening costs no mount: the fold animates it between initial (or exit) and animate. A panel that has never been open mounts nothing, and one that mounts open skips its entrance. Pass false to unmount on every close instead.',
       ],
       [
         'transition',
@@ -118,9 +123,24 @@ export const API: {
         'Arrows, Shift, PageUp / PageDown, Home / End, Enter. Takes any KeyboardEvent.',
       ],
       [
+        'attachSeparator',
+        '(element, group, own?) => () => void',
+        'Wires a separator element: pointer drags and crossings, keyboard, double-click reset, live aria-value and data attributes. Without own it resizes the panel its slot sits beside. Returns the detach.',
+      ],
+      [
+        'reorder',
+        '{ measure, play }',
+        'The reorder trip for plain DOM: measure the group children before the order changes, play the slide after.',
+      ],
+      [
+        'timing',
+        '(transition?) => Transition',
+        'The house curve, or instant under prefers-reduced-motion.',
+      ],
+      [
         'grips',
         'registry',
-        'Rect-cached hit testing behind crossings: register, at, mark, partners.',
+        'Rect-cached hit testing behind crossings, used by attachSeparator: register, at, mark, partners.',
       ],
     ],
   },

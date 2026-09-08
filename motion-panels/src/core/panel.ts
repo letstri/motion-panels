@@ -2,30 +2,30 @@ import type { MotionValue, Transition } from 'motion'
 import { animate, motionValue } from 'motion'
 
 import type { Side } from './axes'
-import { FILL_ATTRIBUTE, hasFillAfter, isRtl, isSeparator } from './dom'
-import { clamp, emitter, reducedMotion } from './env'
+import {
+  FILL_ATTRIBUTE,
+  hasFillAfter,
+  isRtl,
+  isSeparator,
+  lockBody,
+} from './dom'
 import type { PanelGroup } from './group'
-
-export const TRANSITION: Transition = {
-  duration: 0.25,
-  ease: [0.32, 0.72, 0, 1],
-}
-
-const INSTANT: Transition = { duration: 0 }
-
-export const timing = (transition?: Transition): Transition =>
-  reducedMotion.get() ? INSTANT : (transition ?? TRANSITION)
+import { timing } from './transition'
+import { clamp, emitter } from './utils'
 
 const KEY_STEP = 10
 const KEY_STEP_FAST = 50
 
+/** Pixels, or a percentage of the group extent such as `'30%'`. */
+export type Size = number | `${number}%`
+
 export interface PanelOptions {
   collapsed?: boolean
-  maxSize?: number
-  minSize?: number
+  defaultSize?: number
+  maxSize?: Size
+  minSize?: Size
   onCollapsedChange?: (collapsed: boolean) => void
   onSizeChange?: (size: number) => void
-  resetSize?: number
   size: number
   transition?: Transition
 }
@@ -55,7 +55,6 @@ export interface PanelController {
   bounds: () => { max: number; min: number }
   destroy: () => void
   drag: PanelDrag
-  group: PanelGroup
   motion: {
     content: MotionValue<number>
     size: MotionValue<number>
@@ -65,43 +64,17 @@ export interface PanelController {
   resizeByKey: (event: PanelKeyEvent) => void
   state: PanelState
   subscribe: (listener: () => void) => () => void
-  sync: (options: PanelOptions) => void
+  sync: (options: PanelOptions, mounting?: boolean) => void
   target: number
-}
-
-let locks = 0
-let previous: Partial<CSSStyleDeclaration> = {}
-
-const lockBody = (cursor: string, onEscape: () => void) => {
-  const { style } = document.body
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      onEscape()
-    }
-  }
-  if (locks === 0) {
-    previous = {
-      cursor: style.cursor,
-      userSelect: style.userSelect,
-      webkitUserSelect: style.webkitUserSelect,
-    }
-  }
-  locks += 1
-  Object.assign(style, { cursor, userSelect: 'none', webkitUserSelect: 'none' })
-  addEventListener('keydown', onKeyDown, true)
-
-  return () => {
-    locks -= 1
-    if (locks === 0) {
-      Object.assign(style, previous)
-    }
-    removeEventListener('keydown', onKeyDown, true)
-  }
 }
 
 const DEV =
   typeof process === 'undefined' || process.env.NODE_ENV !== 'production'
+
+const toPixels = (value: Size | undefined, extent: number) =>
+  typeof value === 'string'
+    ? (Number(value.slice(0, -1)) / 100) * extent
+    : value
 
 const warnPlacement = (element: HTMLElement, side: Side) => {
   if (!DEV) {
@@ -121,7 +94,7 @@ const warnPlacement = (element: HTMLElement, side: Side) => {
   const sized = half.filter((node) => !isSeparator(node))
   if (sized.length > 1) {
     console.warn(
-      `Motion Panels: ${sized.length} sized panels sit on the "${side}" side of the filling panel. A group holds at most one on each side \u2014 nest a group instead.`
+      `Motion Panels: ${sized.length} sized panels sit on the "${side}" side of the filling panel. A group holds at most one on each side — nest a group instead.`
     )
   }
 }
@@ -134,15 +107,6 @@ export const createPanel = (
   const { clear, emit: notify, subscribe } = emitter()
   const size = motionValue(initial.collapsed ? 0 : initial.size)
   const content = motionValue(initial.size)
-  const drag = {
-    collapsed: false,
-    max: 0,
-    min: 0,
-    pixels: 0,
-    sign: 1,
-    start: 0,
-    wasCollapsed: false,
-  }
 
   let element: HTMLElement | null = null
   let options = initial
@@ -155,17 +119,27 @@ export const createPanel = (
   }
   let unlock: (() => void) | undefined
 
-  const patch = (next: Partial<PanelState>) => {
-    const changes = Object.entries(next) as [keyof PanelState, unknown][]
-    if (changes.every(([key, value]) => state[key] === value)) {
-      return
-    }
-    state = { ...state, ...next }
-    notify()
+  const session = {
+    collapsed: false,
+    max: 0,
+    min: 0,
+    sign: 1,
+    start: 0,
+    wasCollapsed: false,
   }
 
-  const spare = () => {
-    let free = element?.parentElement?.[axes.client] ?? 0
+  const patch = (next: Partial<PanelState>) => {
+    const changes = Object.entries(next) as [keyof PanelState, unknown][]
+    if (changes.some(([key, value]) => state[key] !== value)) {
+      state = { ...state, ...next }
+      notify()
+    }
+  }
+
+  const extent = () => element?.parentElement?.[axes.client] ?? 0
+
+  const freeSpace = () => {
+    let free = extent()
     for (const panel of panels.values()) {
       if (panel !== controller) {
         free -= panel.target
@@ -175,37 +149,50 @@ export const createPanel = (
     return free
   }
 
-  const sign = () =>
-    (state.end ? 1 : -1) * (axes.point === 'x' && isRtl(element) ? -1 : 1)
+  const bounds = () => {
+    const available = Math.max(0, freeSpace())
+    const total = extent()
+    const min = Math.min(toPixels(options.minSize, total) ?? 0, available)
+    const max = toPixels(options.maxSize, total) ?? available
 
-  const applyFill = () => {
-    if (state.folding) {
-      fill.anchor.set(state.end ? 'flex-end' : 'flex-start')
-      fill.size.jump(spare() - target)
-    } else if (![...panels.values()].some((panel) => panel.state.folding)) {
-      fill.size.jump('100%')
-    }
+    return { max: Math.max(min, Math.min(max, available)), min }
   }
+
+  const growSign = () =>
+    (state.end ? 1 : -1) * (axes.point === 'x' && isRtl(element) ? -1 : 1)
 
   const setFolding = (folding: boolean) => {
     if (folding === state.folding) {
       return
     }
     patch({ folding })
-    applyFill()
+    if (folding) {
+      fill.anchor.set(state.end ? 'flex-end' : 'flex-start')
+      fill.size.jump(freeSpace() - target)
+    } else if (![...panels.values()].some((panel) => panel.state.folding)) {
+      fill.size.jump('100%')
+    }
   }
 
-  const fold = (to: number, from: number) => {
-    if (size.get() === 0) {
+  const fold = (to: number, from: number, mounting?: boolean) => {
+    setFolding(true)
+    const closed = size.get() === 0
+    if (closed) {
       content.jump(to)
-    } else if (to > 0) {
-      animate(content, to, timing())
     }
-    animate(
-      size,
-      to,
-      from === 0 || to === 0 ? timing(options.transition) : timing()
-    )
+    const start = () => {
+      if (!closed && to > 0) {
+        animate(content, to, timing())
+      }
+      const transition =
+        from === 0 || to === 0 ? timing(options.transition) : timing()
+      animate(size, to, transition)
+    }
+    if (closed && mounting) {
+      queueMicrotask(start)
+    } else {
+      start()
+    }
   }
 
   const stopSettle = size.on('animationComplete', () => {
@@ -214,80 +201,68 @@ export const createPanel = (
     }
   })
 
-  const bounds = () => {
-    const available = Math.max(0, spare())
-    const min = Math.min(options.minSize ?? 0, available)
-
-    return {
-      max: Math.max(min, Math.min(options.maxSize ?? available, available)),
-      min,
-    }
-  }
-
   const release = () => {
     unlock?.()
     unlock = undefined
   }
 
-  const finish = () => {
+  const stopDragging = () => {
     release()
     patch({ dragging: false })
   }
 
-  const panelDrag: PanelDrag = {
-    cancel: () => {
-      if (!state.dragging) {
-        return
-      }
-      size.jump(drag.start)
-      content.jump(drag.start)
-      if (drag.collapsed !== drag.wasCollapsed) {
-        options.onCollapsedChange?.(drag.wasCollapsed)
-      }
-      finish()
-    },
-    end: () => {
-      if (!state.dragging) {
-        return
-      }
-      finish()
-      if (!drag.collapsed) {
-        options.onSizeChange?.(drag.pixels)
-      }
-      if (size.get() !== target) {
-        setFolding(true)
-        fold(target, size.get())
-      }
+  const drag: PanelDrag = {
+    start: (cursor = axes.cursor) => {
+      const collapsed = !!options.collapsed
+      Object.assign(session, {
+        ...bounds(),
+        collapsed,
+        sign: growSign(),
+        start: size.get(),
+        wasCollapsed: collapsed,
+      })
+      release()
+      unlock = lockBody(cursor, drag.cancel)
+      setFolding(false)
+      patch({ dragging: true })
     },
     move: (offset) => {
-      const pixels = drag.start + offset[axes.point] * drag.sign
-      const collapsed = !!options.onCollapsedChange && pixels < drag.min / 2
-      const next = collapsed ? 0 : Math.round(clamp(pixels, drag.min, drag.max))
-      if (collapsed !== drag.collapsed) {
+      const pixels = session.start + offset[axes.point] * session.sign
+      const collapsed = !!options.onCollapsedChange && pixels < session.min / 2
+      const next = collapsed
+        ? 0
+        : Math.round(clamp(pixels, session.min, session.max))
+      if (collapsed !== session.collapsed) {
         options.onCollapsedChange?.(collapsed)
       }
       size.jump(next)
       if (!collapsed) {
         content.jump(next)
       }
-      drag.collapsed = collapsed
-      drag.pixels = next
+      session.collapsed = collapsed
     },
-    start: (cursor = axes.cursor) => {
-      const collapsed = !!options.collapsed
-      const start = size.get()
-      Object.assign(drag, {
-        ...bounds(),
-        collapsed,
-        pixels: start,
-        sign: sign(),
-        start,
-        wasCollapsed: collapsed,
-      })
-      release()
-      unlock = lockBody(cursor, panelDrag.cancel)
-      setFolding(false)
-      patch({ dragging: true })
+    end: () => {
+      if (!state.dragging) {
+        return
+      }
+      stopDragging()
+      if (!session.collapsed) {
+        options.onSizeChange?.(size.get())
+      }
+      if (size.get() !== target) {
+        fold(target, size.get())
+      }
+    },
+    cancel: () => {
+      if (!state.dragging) {
+        return
+      }
+      size.jump(session.start)
+      content.jump(session.start)
+      if (session.collapsed !== session.wasCollapsed) {
+        options.onCollapsedChange?.(session.wasCollapsed)
+      }
+      stopDragging()
     },
   }
 
@@ -303,7 +278,7 @@ export const createPanel = (
     const { max, min } = bounds()
     const fast =
       event.shiftKey || event.key === 'PageUp' || event.key === 'PageDown'
-    const step = (fast ? KEY_STEP_FAST : KEY_STEP) * sign()
+    const step = (fast ? KEY_STEP_FAST : KEY_STEP) * growSign()
     const moves: Record<string, number> = {
       End: max,
       Home: min,
@@ -325,9 +300,9 @@ export const createPanel = (
   }
 
   const unplace = () => {
-    for (const [key, panel] of panels) {
+    for (const [side, panel] of panels) {
       if (panel === controller) {
-        panels.delete(key)
+        panels.delete(side)
       }
     }
   }
@@ -344,13 +319,13 @@ export const createPanel = (
       panels.set(side, controller)
       group.notify()
     }
-    const seam = end
+    const neighbour = end
       ? element.nextElementSibling
       : element.previousElementSibling
-    patch({ bare: !isSeparator(seam), end })
+    patch({ bare: !isSeparator(neighbour), end })
   }
 
-  const sync = (next: PanelOptions) => {
+  const sync = (next: PanelOptions, mounting?: boolean) => {
     options = next
     place()
     if (size.get() === 0 && !state.dragging) {
@@ -372,8 +347,7 @@ export const createPanel = (
       size.jump(target)
       content.jump(target)
     } else {
-      setFolding(true)
-      fold(target, from)
+      fold(target, from, mounting)
     }
   }
 
@@ -395,8 +369,7 @@ export const createPanel = (
       stopSettle()
       clear()
     },
-    drag: panelDrag,
-    group,
+    drag,
     motion: { content, size },
     get options() {
       return options
@@ -405,7 +378,7 @@ export const createPanel = (
       if (options.collapsed) {
         options.onCollapsedChange?.(false)
       }
-      options.onSizeChange?.(options.resetSize ?? initial.size)
+      options.onSizeChange?.(options.defaultSize ?? initial.size)
     },
     resizeByKey,
     get state() {

@@ -1,26 +1,26 @@
 import type { HTMLMotionProps, Transition } from 'motion/react'
 import { AnimatePresence, motion, useTransform } from 'motion/react'
-import { useRef, useState, useSyncExternalStore } from 'react'
+import { useRef, useState } from 'react'
 
-import type { PanelController, PanelOptions } from '../core'
+import type { PanelOptions, Size } from '../core'
 import {
   coarsePointer,
   createPanel,
-  EDGE_SIZE_FINE,
   edgeSize,
   reducedMotion,
+  timing,
 } from '../core'
-import { timing } from '../core/panel'
-import { useGroup, useIsomorphicLayoutEffect } from './internal'
+import { useGroup, useIsomorphicLayoutEffect, useStore } from './internal'
 import { Separator } from './separator'
 
 export type SizedPanelProps = HTMLMotionProps<'div'> & {
   collapsed?: boolean
-  maxSize?: number
-  minSize?: number
+  defaultSize?: number
+  keepMounted?: boolean
+  maxSize?: Size
+  minSize?: Size
   onCollapsedChange?: (collapsed: boolean) => void
   onSizeChange?: (size: number) => void
-  resetSize?: number
   size: number
   transition?: Transition
 }
@@ -31,19 +31,6 @@ export type FillPanelProps = HTMLMotionProps<'div'> & {
 }
 
 export type PanelProps = FillPanelProps | SizedPanelProps
-
-const useReducedMotion = () =>
-  useSyncExternalStore(reducedMotion.subscribe, reducedMotion.get, () => false)
-
-const useEdgeSize = () =>
-  useSyncExternalStore(coarsePointer.subscribe, edgeSize, () => EDGE_SIZE_FINE)
-
-export const usePanelState = (panel: PanelController) =>
-  useSyncExternalStore(
-    panel.subscribe,
-    () => panel.state,
-    () => panel.state
-  )
 
 const FillPanel = ({ pin, style, transition, ...props }: FillPanelProps) => {
   const {
@@ -88,14 +75,17 @@ const FillPanel = ({ pin, style, transition, ...props }: FillPanelProps) => {
 }
 
 const SizedPanel = ({
+  animate,
   collapsed,
+  custom,
+  defaultSize,
   exit,
   initial,
+  keepMounted = true,
   maxSize,
   minSize,
   onCollapsedChange,
   onSizeChange,
-  resetSize,
   size,
   style,
   transition,
@@ -106,33 +96,64 @@ const SizedPanel = ({
   const elementRef = useRef<HTMLDivElement>(null)
   const options: PanelOptions = {
     collapsed,
+    defaultSize,
     maxSize,
     minSize,
     onCollapsedChange,
     onSizeChange,
-    resetSize,
     size,
     transition,
   }
   // oxlint-disable-next-line react/hook-use-state -- the controller is created once and mutated, never replaced
   const [panel] = useState(() => createPanel(group, options))
-  const state = usePanelState(panel)
-  const edge = useEdgeSize()
-  useReducedMotion()
-  const rendered = useTransform(panel.motion.size, Math.abs)
+  const state = useStore(panel.subscribe, () => panel.state)
+  const edge = useStore(coarsePointer.subscribe, edgeSize)
+  useStore(reducedMotion.subscribe, reducedMotion.get)
+  const extent = useTransform(panel.motion.size, Math.abs)
+
+  const closedPose =
+    exit ?? (typeof initial === 'boolean' ? undefined : initial)
+  const present =
+    !collapsed || state.dragging || (closedPose === undefined && state.folding)
+  const [shown, setShown] = useState(present)
+  if (present && !shown) {
+    setShown(true)
+  }
+  const mounted = keepMounted ? shown : present
+  // oxlint-disable-next-line react/hook-use-state -- a constant captured at mount, never set again
+  const [openAtMount] = useState(present)
+  const wasMounted = useRef(false)
 
   useIsomorphicLayoutEffect(() => {
-    panel.sync(options)
+    const mounting = mounted && !wasMounted.current
+    panel.sync(options, mounting)
+    wasMounted.current = mounted
   })
 
   useIsomorphicLayoutEffect(
     () => (elementRef.current ? panel.attach(elementRef.current) : undefined),
-    [panel]
+    []
   )
 
-  const closed = exit ?? (typeof initial === 'boolean' ? undefined : initial)
-  const present =
-    !collapsed || state.dragging || (closed === undefined && state.folding)
+  const renderContent = (
+    pose: Pick<SizedPanelProps, 'animate' | 'exit' | 'initial'>
+  ) => (
+    <motion.div
+      key="content"
+      custom={custom}
+      transition={timing(transition)}
+      style={{
+        ...style,
+        flexShrink: 0,
+        [axes.cross]: '100%',
+        [axes.extent]: panel.motion.content,
+      }}
+      {...props}
+      {...pose}
+    />
+  )
+
+  const clipping = !!collapsed || state.dragging || state.folding
 
   return (
     <motion.div
@@ -142,32 +163,26 @@ const SizedPanel = ({
         flexDirection: axes.direction,
         flexShrink: 0,
         justifyContent: state.end ? 'flex-start' : 'flex-end',
-        overflow:
-          collapsed || state.dragging || state.folding ? 'clip' : 'visible',
+        overflow: clipping ? 'clip' : 'visible',
         position: 'relative',
-        [axes.extent]: rendered,
+        [axes.extent]: extent,
       }}
     >
-      <AnimatePresence custom={props.custom} initial={false}>
-        {present && (
-          <motion.div
-            key="content"
-            exit={closed}
-            initial={initial}
-            transition={timing(transition)}
-            style={{
-              ...style,
-              flexShrink: 0,
-              [axes.cross]: '100%',
-              [axes.extent]: panel.motion.content,
-            }}
-            {...props}
-          />
-        )}
-      </AnimatePresence>
+      {keepMounted ? (
+        mounted &&
+        renderContent({
+          animate: present ? animate : closedPose,
+          initial: openAtMount ? false : initial,
+        })
+      ) : (
+        <AnimatePresence custom={custom} initial={false}>
+          {present && renderContent({ animate, exit: closedPose, initial })}
+        </AnimatePresence>
+      )}
       {state.bare && (
         <Separator
           data-motion-panels-edge
+          end={state.end}
           own={panel}
           style={{ [axes.extent]: edge }}
         />
