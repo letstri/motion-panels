@@ -32,8 +32,6 @@ function Layout() {
 
 Every size is pixels or a percentage of the group — `useState<Size>('30%')` gives a panel that follows the group as it resizes, and `onSizeChange` reports back in whichever form it was given.
 
-Every size is pixels or a percentage of the group — `useState<Size>('30%')` gives a panel that follows the group as it resizes, and `onSizeChange` reports back in whichever form it was given.
-
 Folding, collapsing, pinning, nesting, separator intersections, keyboard and RTL support, plus the framework-agnostic core API — all with live demos:
 
 **[motion-panels.letstri.dev](https://motion-panels.letstri.dev)**
