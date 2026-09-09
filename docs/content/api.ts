@@ -16,6 +16,11 @@ export const API: {
         'Transition',
         'Timing of the reorder trip: keyed children rendered in a new order travel there. Defaults to the house curve.',
       ],
+      [
+        'reorder',
+        'boolean (default true)',
+        'Pass false and reordered children jump to their new place instead of travelling, with nothing measured on the way.',
+      ],
     ],
   },
   {
@@ -75,7 +80,7 @@ export const API: {
   },
   {
     name: 'Separator',
-    note: "No props of its own beyond transition; the rest reaches a motion div, and aria-label defaults to 'Resize panel'. Optional: rendered between two panels it resizes the sized one and sits over its edge without taking flow space. It keeps aria-valuenow, aria-valuetext and aria-valuemin current, adds aria-valuemax once the panel has a maxSize, and marks itself with data-resizing and data-crossing.",
+    note: "No props of its own beyond transition; the rest reaches a motion div, and aria-label defaults to 'Resize panel'. Optional: rendered between two panels it resizes the sized one and sits over its edge without taking flow space, and a flex gap on the group opens on both sides of it, so the seam is twice the gap with the grip in its middle. It keeps aria-valuenow, aria-valuetext and aria-valuemin current, adds aria-valuemax once the panel has a maxSize, and marks itself with data-resizing and data-crossing.",
     props: [],
   },
   {

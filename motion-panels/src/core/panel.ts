@@ -154,30 +154,33 @@ export const createPanel = <S extends Size>(
     }
   }
 
-  const freeSpace = () => {
-    let free = extent()
+  const available = () => {
+    const filler = [...(element?.parentElement?.children ?? [])].find((node) =>
+      node.hasAttribute(FILL_ATTRIBUTE)
+    ) as HTMLElement | undefined
+    let room = filler
+      ? // oxlint-disable-next-line unicorn/prefer-number-coercion -- a computed width carries its unit: Number('649px') is NaN
+        Number.parseFloat(getComputedStyle(filler)[axes.extent])
+      : 0
     for (const panel of panels.values()) {
-      if (panel !== controller) {
-        free -= panel.target
-      }
+      room +=
+        panel.motion.size.get() - (panel === controller ? 0 : panel.target)
     }
 
-    return free
+    return Math.max(0, room)
   }
 
   const bounds = () => {
-    const available = Math.max(0, freeSpace())
+    const room = available()
     const total = extent()
     const min = Math.min(
       options.minSize === undefined ? 0 : toPixels(options.minSize, total),
-      available
+      room
     )
     const max =
-      options.maxSize === undefined
-        ? available
-        : toPixels(options.maxSize, total)
+      options.maxSize === undefined ? room : toPixels(options.maxSize, total)
 
-    return { max: Math.max(min, Math.min(max, available)), min }
+    return { max: Math.max(min, Math.min(max, room)), min }
   }
 
   const growSign = () =>
@@ -190,7 +193,7 @@ export const createPanel = <S extends Size>(
     patch({ folding })
     if (folding) {
       fill.anchor.set(state.end ? 'flex-end' : 'flex-start')
-      fill.size.jump(freeSpace() - target)
+      fill.size.jump(available() - target)
     } else if (![...panels.values()].some((panel) => panel.state.folding)) {
       fill.size.jump('100%')
     }

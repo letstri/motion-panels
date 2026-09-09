@@ -30,7 +30,7 @@ function Layout() {
 }
 ```
 
-Every size is pixels or a percentage of the group — `useState<Size>('30%')` gives a panel that follows the group as it resizes, and `onSizeChange` reports back in whichever form it was given.
+Space the panels with padding, a flex gap on the group (it opens on both sides of a separator), or not at all: the room a panel may take is measured, never assumed from the group extent. Every size is pixels or a percentage of the group — `useState<Size>('30%')` gives a panel that follows the group as it resizes, and `onSizeChange` reports back in whichever form it was given.
 
 Folding, collapsing, pinning, nesting, separator intersections, keyboard and RTL support, plus the framework-agnostic core API — all with live demos:
 

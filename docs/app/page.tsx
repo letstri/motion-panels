@@ -11,6 +11,7 @@ import { Orientation } from '@/content/sections/orientation'
 import { Pinning } from '@/content/sections/pinning'
 import { QuickStart } from '@/content/sections/quick-start'
 import { SeparatorSection } from '@/content/sections/separator'
+import { Spacing } from '@/content/sections/spacing'
 import { Styling } from '@/content/sections/styling'
 
 const DocsPage = () => (
@@ -31,6 +32,7 @@ const DocsPage = () => (
         <Pinning />
         <Nesting />
         <BothEdges />
+        <Spacing />
         <Core />
         <Styling />
         <Api />

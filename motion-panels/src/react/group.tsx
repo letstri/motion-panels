@@ -8,6 +8,7 @@ import { GroupContext, useIsomorphicLayoutEffect } from './internal'
 
 export type GroupProps = ComponentProps<'div'> & {
   orientation?: Orientation
+  reorder?: boolean
   transition?: Transition
 }
 
@@ -17,6 +18,7 @@ const childKeys = (children: ReactNode) =>
 export const Group = ({
   children,
   orientation = 'horizontal',
+  reorder: travel = true,
   style,
   transition,
   ...props
@@ -33,7 +35,7 @@ export const Group = ({
   /* oxlint-disable react/refs -- getSnapshotBeforeUpdate has no hook form */
   if (keys !== lastKeys.current && root.current) {
     lastKeys.current = keys
-    before.current = reorder.measure(root.current, axes)
+    before.current = travel ? reorder.measure(root.current, axes) : null
   }
   /* oxlint-enable react/refs */
 

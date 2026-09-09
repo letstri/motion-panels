@@ -23,6 +23,7 @@ export const Separator = ({
   const group = useGroup()
   const { axes } = group
   const gripRef = useRef<HTMLDivElement>(null)
+  const edge = `inset${axes.axis}${end ? 'End' : 'Start'}` as const
 
   useIsomorphicLayoutEffect(
     () =>
@@ -62,7 +63,7 @@ export const Separator = ({
       style={{
         ...slot,
         position: 'absolute',
-        [`inset${axes.axis}${end ? 'End' : 'Start'}`]: 0,
+        [edge]: 0,
         [`inset${axes.crossAxis}`]: 0,
       }}
     >

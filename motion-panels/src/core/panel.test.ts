@@ -1,5 +1,5 @@
 import type * as Motion from 'motion'
-import { animate } from 'motion'
+import { animate, motionValue } from 'motion'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createPanelGroup } from './group'
@@ -21,7 +21,7 @@ const key = (name: string, shiftKey = false) => ({
   shiftKey,
 })
 
-const mount = (options?: { fillFirst?: boolean }) => {
+const mount = (options?: { fillFirst?: boolean; fillSize?: number }) => {
   document.body.innerHTML = ''
   const parent = document.createElement('div')
   const panel = document.createElement('div')
@@ -37,6 +37,7 @@ const mount = (options?: { fillFirst?: boolean }) => {
     configurable: true,
     value: PARENT_SIZE,
   })
+  fill.style.width = `${options?.fillSize ?? PARENT_SIZE - 200}px`
 
   return panel
 }
@@ -115,13 +116,35 @@ describe('createPanel', () => {
     expect(panel.state.folding).toBe(false)
   })
 
-  it('caps the default max at the space the other panels leave', () => {
+  it('caps the default max at the room its box and the fill box measure', () => {
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, { size: 200 })
+    // 1000 wide group, 200 panel, 700 fill: the 100 left is gap or padding.
+    panel.attach(mount({ fillSize: 700 }))
+
+    expect(panel.bounds()).toEqual({ max: 900, min: 0 })
+  })
+
+  it('counts another panel mid-fold at the size it is heading to', () => {
     const group = createPanelGroup('horizontal')
     const panel = createPanel(group, { size: 200 })
     panel.attach(mount())
-    group.panels.set('end', { target: 300 } as unknown as PanelController)
+    group.panels.set('end', {
+      motion: { size: motionValue(100) },
+      target: 300,
+    } as unknown as PanelController)
 
-    expect(panel.bounds()).toEqual({ max: PARENT_SIZE - 300, min: 0 })
+    expect(panel.bounds()).toEqual({ max: PARENT_SIZE - 200, min: 0 })
+  })
+
+  it('pins the fill at the width the fold ends with', () => {
+    const options = { collapsed: false, onCollapsedChange: noop, size: 200 }
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, options)
+    panel.attach(mount({ fillSize: 700 }))
+
+    panel.sync({ ...options, collapsed: true })
+    expect(group.fill.size.get()).toBe(900)
   })
 
   it('resolves percentage bounds against the group extent', () => {

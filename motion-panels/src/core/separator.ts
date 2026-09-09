@@ -134,9 +134,14 @@ export const attachSeparator = (
         grips.mark('crossed', [])
       }
     },
-    dblclick: () => {
+    dblclick: (event: MouseEvent) => {
       if (!dragged) {
-        panel?.reset()
+        for (const target of [
+          panel,
+          ...grips.partners(grips.at(event), element),
+        ]) {
+          target?.reset()
+        }
       }
     },
     keydown: (event: KeyboardEvent) => panel?.resizeByKey(event),

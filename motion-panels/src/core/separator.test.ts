@@ -15,6 +15,7 @@ const mount = () => {
   root.append(panel, fill)
   document.body.append(root)
   Object.defineProperty(root, 'clientWidth', { value: 1000 })
+  fill.style.width = '800px'
   grip.setPointerCapture = vi.fn()
 
   return { grip, panel }
@@ -62,6 +63,29 @@ describe('attachSeparator', () => {
     grip.dispatchEvent(pointer('pointerdown', 0))
     grip.dispatchEvent(pointer('pointermove', 50))
     expect(controller.state.dragging).toBe(false)
+  })
+
+  it('resets every panel whose grip crosses under a double-click', () => {
+    const onSizeChange = vi.fn()
+    const group = createPanelGroup('horizontal')
+    const { grip, panel } = mount()
+    const other = document.createElement('div')
+    const detach = [
+      createPanel(group, { onSizeChange, size: 200 }),
+      createPanel(createPanelGroup('vertical'), { onSizeChange, size: 100 }),
+    ].map((controller, index) => {
+      controller.attach(index === 0 ? panel : other)
+
+      return attachSeparator(index === 0 ? grip : other, group, controller)
+    })
+
+    // Both grips measure as an empty rect at the origin, so they cross there.
+    grip.dispatchEvent(new MouseEvent('dblclick', { clientX: 0, clientY: 0 }))
+    expect(onSizeChange.mock.calls).toEqual([[200], [100]])
+
+    for (const stop of detach) {
+      stop()
+    }
   })
 
   it('finds the panel its slot resizes and follows the group', () => {
