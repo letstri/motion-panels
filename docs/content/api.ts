@@ -23,22 +23,22 @@ export const API: {
     props: [
       [
         'size',
-        'number | percent string',
+        'number | string',
         'Current size, in pixels or as a percentage of the group extent. A percentage follows the group as it resizes. Omit it and the panel fills what is left.',
       ],
       [
         'onSizeChange',
-        '(size: number) => void',
+        '(size: number | string) => void',
         'Called with the new size as a drag or key press lands, in the form size was given: a number reports pixels, a percent string reports a percentage. A wrapper component reading ComponentProps sees the pixel form; one that forwards percentages takes PanelProps<Size>.',
       ],
       [
         'defaultSize',
-        'number | percent string',
+        'number | string',
         'Size a double-click on the separator resets to. Defaults to the size the panel mounted with.',
       ],
       [
         'minSize / maxSize',
-        'number | percent string',
+        'number | string',
         'Drag and keyboard bounds, in pixels or as a percentage of the group extent. Both clamp to the room the other panels leave, and max defaults to all of it.',
       ],
       [
