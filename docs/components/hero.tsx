@@ -15,7 +15,7 @@ export const Hero = () => (
       <div
         className={`${SHELL} kicker text-muted-foreground/60 flex h-10 items-center justify-between`}
       >
-        <span>Docs / React</span>
+        <span>motion-panels</span>
         <span>v{version}</span>
       </div>
     </div>
@@ -29,10 +29,8 @@ export const Hero = () => (
           Resizable panels, animated with Motion
         </h1>
         <p className={`${LEAD} mt-6 max-w-[46ch] text-[16px]`}>
-          A framework-agnostic core with a React adapter on top. Unstyled, no
-          layout library, and separators are optional — a sized panel drags by
-          its own edge. Everything on this page is the published package running
-          live; the workspace beside this text resizes.
+          Drag a panel by its edge, or add a separator. No styling, no layout
+          library. Try it — the panels next to this text are the real thing.
         </p>
         <div className="mt-9 flex flex-wrap items-center gap-3">
           <Button
