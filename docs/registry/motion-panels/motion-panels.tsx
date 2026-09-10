@@ -26,10 +26,6 @@ const Grip = () => (
   </svg>
 )
 
-/**
- * The seam between two panels. It sits centred on the boundary and takes no
- * room in the flow, so the line it draws never shifts the layout.
- */
 function PanelSeparator({
   className,
   withHandle,
