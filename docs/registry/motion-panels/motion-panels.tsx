@@ -30,7 +30,7 @@ function PanelSeparator({
   className,
   withHandle,
   ...props
-}: SeparatorProps & { withHandle?: boolean }) {
+}: Omit<SeparatorProps, 'children'> & { withHandle?: boolean }) {
   return (
     <Separator
       data-slot="panel-separator"
