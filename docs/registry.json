@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "motion-panels",
+  "homepage": "https://motion-panels.letstri.dev",
+  "items": [
+    {
+      "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+      "name": "motion-panels",
+      "type": "registry:ui",
+      "title": "Motion Panels",
+      "description": "Resizable panels animated with Motion. A group, a panel, and a separator that draws the seam it drags.",
+      "dependencies": ["motion-panels", "motion", "cn"],
+      "files": [
+        {
+          "path": "registry/motion-panels/motion-panels.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/motion-panels.tsx"
+        }
+      ]
+    }
+  ]
+}

@@ -3,4 +3,5 @@ export const ignorePatterns = [
   '**/.next/**',
   '**/node_modules/**',
   'docs/components/ui/**',
+  'docs/public/r/**',
 ]

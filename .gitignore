@@ -7,3 +7,4 @@ dist
 *.tsbuildinfo
 .tsbuild
 .claude/worktrees
+docs/public/r

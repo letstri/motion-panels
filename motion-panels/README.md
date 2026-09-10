@@ -9,6 +9,12 @@ pnpm add motion-panels motion       # the core alone
 pnpm add motion-panels motion react # with the React adapter
 ```
 
+Or through shadcn, which writes a styled separator over the same components into `components/ui/motion-panels.tsx`:
+
+```sh
+npx shadcn@latest add https://motion-panels.letstri.dev/r/motion-panels.json
+```
+
 ```tsx
 import { Group, Panel, Separator } from 'motion-panels/react'
 import { useState } from 'react'

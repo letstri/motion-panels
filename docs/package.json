@@ -4,9 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter motion-panels run build && next dev --port 3200",
-    "build": "pnpm --filter motion-panels run build && next build",
+    "build": "pnpm --filter motion-panels run build && shadcn build && next build",
     "start": "next start --port 3200",
-    "check-types": "tsc"
+    "check-types": "tsc",
+    "registry": "shadcn build"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
