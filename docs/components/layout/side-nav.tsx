@@ -23,7 +23,6 @@ const GROUPS = [
     items: [
       { id: 'nesting', navTitle: 'Nesting' },
       { id: 'both-edges', navTitle: 'Both edges' },
-      { id: 'spacing', navTitle: 'Spacing' },
     ],
     title: 'Layouts',
   },
