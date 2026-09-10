@@ -38,16 +38,6 @@ const SPACINGS = {
     panel: { paddingRight: 12 },
     separator: { x: -6 },
   },
-  flush: {
-    code: `<Group>
-  <Panel size={width}>…</Panel>
-  <Separator />
-  <Panel pin>…</Panel>
-</Group>`,
-    group: undefined,
-    panel: undefined,
-    separator: undefined,
-  },
 } as const
 
 type Spacing = keyof typeof SPACINGS
