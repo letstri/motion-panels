@@ -100,6 +100,57 @@ describe('createPanel', () => {
     expect(onSizeChange).toHaveBeenCalledWith(100)
   })
 
+  it('stops dead at the bounds when overshoot is off', () => {
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, {
+      maxSize: 400,
+      minSize: 100,
+      overshoot: false,
+      size: 200,
+    })
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: 5000, y: 0 })
+    expect(panel.motion.size.get()).toBe(400)
+    panel.drag.move({ x: -5000, y: 0 })
+    expect(panel.motion.size.get()).toBe(100)
+    panel.drag.end()
+  })
+
+  it('stretches only as far as the overshoot number allows', () => {
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, {
+      maxSize: 400,
+      minSize: 100,
+      overshoot: 60,
+      size: 200,
+    })
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: 5000, y: 0 })
+    expect(panel.motion.size.get()).toBeGreaterThan(432)
+    expect(panel.motion.size.get()).toBeLessThanOrEqual(460)
+    panel.drag.end()
+  })
+
+  it('stops dead at the bounds when overshoot is zero', () => {
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, {
+      maxSize: 400,
+      minSize: 100,
+      overshoot: 0,
+      size: 200,
+    })
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: 5000, y: 0 })
+    expect(panel.motion.size.get()).toBe(400)
+    panel.drag.end()
+  })
+
   it('keeps the dragged size once the host syncs it back', () => {
     const options = { onSizeChange: vi.fn(), size: 200 }
     const group = createPanelGroup('horizontal')

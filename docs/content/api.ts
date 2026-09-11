@@ -47,6 +47,11 @@ export const API: {
         'Drag and keyboard bounds, in pixels or as a percentage of the group extent. Both clamp to the room the other panels leave, and max defaults to all of it.',
       ],
       [
+        'overshoot',
+        'boolean | number (default 22)',
+        'A drag that reaches minSize or maxSize keeps stretching a little past it, then springs back on release, so the edge shows it has run out rather than looking stuck. A number sets how far that stretch reaches, in pixels; false or 0 stops the drag dead at the bound.',
+      ],
+      [
         'collapsed',
         'boolean',
         'Folds the panel to zero. Dragging below half of minSize sets it too, once onCollapsedChange is there to hear it.',

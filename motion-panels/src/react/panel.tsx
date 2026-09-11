@@ -27,6 +27,7 @@ export type SizedPanelProps<S extends Size = number> =
     minSize?: Size
     onCollapsedChange?: (collapsed: boolean) => void
     onSizeChange?: (size: S) => void
+    overshoot?: boolean | number
     size: S
     transition?: Transition
   }
@@ -40,11 +41,6 @@ export type PanelProps<S extends Size = number> =
   | FillPanelProps
   | SizedPanelProps<S>
 
-/**
- * What a wrapper sees through `ComponentProps<typeof Panel>`: the two sized
- * shapes side by side rather than one over `Size`, so the size a call passes
- * still picks the form its onSizeChange reports.
- */
 export type AnyPanelProps =
   | FillPanelProps
   | SizedPanelProps
@@ -104,6 +100,7 @@ const SizedPanel = <S extends Size>({
   minSize,
   onCollapsedChange,
   onSizeChange,
+  overshoot,
   size,
   style,
   transition,
@@ -119,6 +116,7 @@ const SizedPanel = <S extends Size>({
     minSize,
     onCollapsedChange,
     onSizeChange,
+    overshoot,
     size,
     transition,
   }

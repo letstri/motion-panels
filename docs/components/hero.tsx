@@ -1,5 +1,3 @@
-import { version } from 'motion-panels/package.json'
-
 import { Button } from '@/components/ui/button'
 import { HeroDemo } from '@/demos'
 
@@ -11,14 +9,6 @@ const INSTALL = 'pnpm add motion-panels motion'
 
 export const Hero = () => (
   <header className="border-b">
-    <div className="border-b">
-      <div
-        className={`${SHELL} kicker text-muted-foreground/60 flex h-10 items-center justify-between`}
-      >
-        <span>motion-panels</span>
-        <span>v{version}</span>
-      </div>
-    </div>
     <div
       className={`${SHELL} grid items-center gap-10 pt-14 pb-16 min-[1000px]:grid-cols-[minmax(0,25rem)_minmax(0,1fr)] min-[1000px]:gap-14 min-[1000px]:pt-20 min-[1000px]:pb-24`}
     >

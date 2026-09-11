@@ -27,6 +27,7 @@ export interface PanelOptions<S extends Size = Size> {
   onCollapsedChange?: (collapsed: boolean) => void
   // oxlint-disable-next-line typescript/method-signature-style -- bivariant on purpose: a controller of one form must still register in the group
   onSizeChange?(size: S): void
+  overshoot?: boolean | number
   size: S
   transition?: Transition
 }
@@ -73,10 +74,18 @@ export interface PanelController<S extends Size = Size> {
 const DEV =
   typeof process === 'undefined' || process.env.NODE_ENV !== 'production'
 
-const overshoot = (excess: number) => {
+const overshoot = (excess: number, limit: number) => {
   const distance = Math.abs(excess)
 
-  return (Math.sign(excess) * OVERSHOOT * distance) / (distance + OVERSHOOT)
+  return (Math.sign(excess) * limit * distance) / (distance + limit)
+}
+
+const overshootLimit = (option: boolean | number | undefined) => {
+  if (option === undefined || option === true) {
+    return OVERSHOOT
+  }
+
+  return option === false ? 0 : Math.max(0, option)
 }
 
 const toPixels = (value: Size, extent: number) =>
@@ -262,9 +271,12 @@ export const createPanel = <S extends Size>(
       const pixels = session.start + offset[axes.point] * session.sign
       const collapsed = !!options.onCollapsedChange && pixels < session.min / 2
       const clamped = clamp(pixels, session.min, session.max)
-      const next = collapsed
-        ? 0
-        : Math.max(0, Math.round(clamped + overshoot(pixels - clamped)))
+      const limit = overshootLimit(options.overshoot)
+      const stretched =
+        limit > 0
+          ? Math.max(0, clamped + overshoot(pixels - clamped, limit))
+          : clamped
+      const next = collapsed ? 0 : Math.round(stretched)
       if (collapsed !== session.collapsed) {
         options.onCollapsedChange?.(collapsed)
       }
