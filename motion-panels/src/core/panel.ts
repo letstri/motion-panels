@@ -15,6 +15,7 @@ import { clamp, emitter } from './utils'
 
 const KEY_STEP = 10
 const KEY_STEP_FAST = 50
+const OVERSHOOT = 22
 
 export type Size = number | `${number}%`
 
@@ -71,6 +72,12 @@ export interface PanelController<S extends Size = Size> {
 
 const DEV =
   typeof process === 'undefined' || process.env.NODE_ENV !== 'production'
+
+const overshoot = (excess: number) => {
+  const distance = Math.abs(excess)
+
+  return (Math.sign(excess) * OVERSHOOT * distance) / (distance + OVERSHOOT)
+}
 
 const toPixels = (value: Size, extent: number) =>
   typeof value === 'string'
@@ -254,9 +261,10 @@ export const createPanel = <S extends Size>(
     move: (offset) => {
       const pixels = session.start + offset[axes.point] * session.sign
       const collapsed = !!options.onCollapsedChange && pixels < session.min / 2
+      const clamped = clamp(pixels, session.min, session.max)
       const next = collapsed
         ? 0
-        : Math.round(clamp(pixels, session.min, session.max))
+        : Math.max(0, Math.round(clamped + overshoot(pixels - clamped)))
       if (collapsed !== session.collapsed) {
         options.onCollapsedChange?.(collapsed)
       }
@@ -272,7 +280,9 @@ export const createPanel = <S extends Size>(
       }
       stopDragging()
       if (!session.collapsed) {
-        options.onSizeChange?.(report(size.get()))
+        options.onSizeChange?.(
+          report(Math.round(clamp(size.get(), session.min, session.max)))
+        )
       }
       if (size.get() !== target) {
         fold(target, size.get())

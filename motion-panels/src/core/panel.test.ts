@@ -74,7 +74,7 @@ describe('createPanel', () => {
     expect(group.panels.get('start')).toBeUndefined()
   })
 
-  it('clamps drag to bounds and reports the size once', () => {
+  it('stretches past the bounds and reports the clamped size once', () => {
     const onSizeChange = vi.fn()
     const group = createPanelGroup('horizontal')
     const panel = createPanel(group, {
@@ -89,9 +89,11 @@ describe('createPanel', () => {
     panel.drag.move({ x: 50, y: 0 })
     expect(panel.motion.size.get()).toBe(250)
     panel.drag.move({ x: 5000, y: 0 })
-    expect(panel.motion.size.get()).toBe(400)
+    expect(panel.motion.size.get()).toBeGreaterThan(400)
+    expect(panel.motion.size.get()).toBeLessThanOrEqual(422)
     panel.drag.move({ x: -5000, y: 0 })
-    expect(panel.motion.size.get()).toBe(100)
+    expect(panel.motion.size.get()).toBeLessThan(100)
+    expect(panel.motion.size.get()).toBeGreaterThanOrEqual(78)
     panel.drag.end()
 
     expect(onSizeChange).toHaveBeenCalledTimes(1)
