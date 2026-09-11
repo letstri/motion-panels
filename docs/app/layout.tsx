@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Merriweather } from 'next/font/google'
 import type { ReactNode } from 'react'
@@ -33,6 +34,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => (
         {children}
         <SiteFooter />
       </ThemeProvider>
+      <Analytics />
     </body>
   </html>
 )

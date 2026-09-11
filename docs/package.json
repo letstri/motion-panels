@@ -13,6 +13,7 @@
     "@base-ui/react": "^1.8.0",
     "@remixicon/react": "^4.9.0",
     "@shikijs/twoslash": "^3.23.0",
+    "@vercel/analytics": "^2.0.1",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.6",
     "motion": "^13.2.0",
