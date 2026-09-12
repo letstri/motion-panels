@@ -13,8 +13,7 @@
       "files": [
         {
           "path": "registry/motion-panels/motion-panels.tsx",
-          "type": "registry:ui",
-          "target": "components/ui/motion-panels.tsx"
+          "type": "registry:ui"
         }
       ]
     }
