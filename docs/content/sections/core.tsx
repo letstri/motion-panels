@@ -82,7 +82,7 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
         ],
         [
           'sized panel',
-          'flex-shrink: 0 and its extent from motion.size, floored at 0. Feed the negative part back as a margin on the dragging edge and an overshoot pulls the layout instead of pushing it.',
+          'flex-shrink: 0 and its extent from motion.size, floored at 0.',
         ],
         [
           'panel content',

@@ -1,11 +1,11 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
+import { ThemeProvider } from 'next-themes'
 import { Geist, Geist_Mono, Merriweather } from 'next/font/google'
 import type { ReactNode } from 'react'
 
 import { SiteFooter } from '@/components/layout/site-footer'
 import { SiteHeader } from '@/components/layout/site-header'
-import { ThemeProvider } from '@/components/theme-provider'
 
 import '@shikijs/twoslash/style-rich.css'
 import './globals.css'
@@ -29,7 +29,7 @@ const RootLayout = ({ children }: { children: ReactNode }) => (
     className={`${sans.variable} ${heading.variable} ${mono.variable}`}
   >
     <body className="text-[15px]/[1.65] antialiased">
-      <ThemeProvider>
+      <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
         <SiteHeader />
         {children}
         <SiteFooter />

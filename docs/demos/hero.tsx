@@ -1,5 +1,6 @@
 'use client'
 
+import { reducedMotion } from 'motion-panels'
 import { Group, Panel, Separator } from 'motion-panels/react'
 import { motion, useSpring, useTransform } from 'motion/react'
 import type { ReactNode } from 'react'
@@ -63,18 +64,8 @@ const RISE = {
   shown: { opacity: 1, transition: { duration: 0.32, ease: 'easeOut' }, y: 0 },
 } as const
 
-const CALM = '(prefers-reduced-motion: reduce)'
-
 const useStill = () =>
-  useSyncExternalStore(
-    (wake) => {
-      const query = matchMedia(CALM)
-      query.addEventListener('change', wake)
-      return () => query.removeEventListener('change', wake)
-    },
-    () => matchMedia(CALM).matches,
-    () => false
-  )
+  useSyncExternalStore(reducedMotion.subscribe, reducedMotion.get, () => false)
 
 const List = ({ children }: { children: ReactNode }) => (
   <motion.ul

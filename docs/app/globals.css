@@ -101,6 +101,11 @@
   }
 }
 
+[data-motion-panels-edge]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
 @utility kicker {
   font-family: var(--font-mono);
   font-size: 0.6875rem;

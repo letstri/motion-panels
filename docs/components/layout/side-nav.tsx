@@ -42,13 +42,11 @@ const useActiveSection = () => {
   const [active, setActive] = useState(SECTIONS[0].id)
 
   useEffect(() => {
+    const targets = SECTIONS.map(({ id }) => document.querySelector(`#${id}`))
     const update = () => {
-      const passed = SECTIONS.findLast(({ id }) => {
-        const top = document
-          .querySelector(`#${id}`)
-          ?.getBoundingClientRect().top
-        return top !== undefined && top <= 120
-      })
+      const passed = targets.findLast(
+        (target) => target !== null && target.getBoundingClientRect().top <= 120
+      )
 
       setActive(passed?.id ?? SECTIONS[0].id)
     }
