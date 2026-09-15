@@ -1,6 +1,11 @@
 export const FILL_ATTRIBUTE = 'data-motion-panels-fill'
 export const SEPARATOR_ATTRIBUTE = 'data-motion-panels-separator'
 
+export const fillOf = (element: Element | null) =>
+  element?.parentElement?.querySelector<HTMLElement>(
+    `:scope > [${FILL_ATTRIBUTE}]`
+  ) ?? null
+
 export const isRtl = (element: Element | null) =>
   !!element && getComputedStyle(element).direction === 'rtl'
 

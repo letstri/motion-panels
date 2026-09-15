@@ -21,8 +21,8 @@ const mount = () => {
   return { grip, panel }
 }
 
-const pointer = (type: string, clientX: number) =>
-  new PointerEvent(type, { clientX, clientY: 0, pointerId: 1 })
+const pointer = (type: string, clientX: number, button = 0) =>
+  new PointerEvent(type, { button, clientX, clientY: 0, pointerId: 1 })
 
 describe('attachSeparator', () => {
   beforeEach(() => {
@@ -43,6 +43,10 @@ describe('attachSeparator', () => {
 
     expect(grip.getAttribute('aria-valuenow')).toBe('200')
     expect(grip.getAttribute('aria-valuemax')).toBe('400')
+
+    grip.dispatchEvent(pointer('pointerdown', 0, 2))
+    grip.dispatchEvent(pointer('pointermove', 50))
+    expect(controller.state.dragging).toBe(false)
 
     grip.dispatchEvent(pointer('pointerdown', 0))
     grip.dispatchEvent(pointer('pointermove', 2))

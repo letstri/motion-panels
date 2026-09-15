@@ -2,13 +2,7 @@ import type { MotionValue, Transition } from 'motion'
 import { animate, motionValue } from 'motion'
 
 import type { Side } from './axes'
-import {
-  FILL_ATTRIBUTE,
-  hasFillAfter,
-  isRtl,
-  isSeparator,
-  lockBody,
-} from './dom'
+import { fillOf, hasFillAfter, isRtl, isSeparator, lockBody } from './dom'
 import type { PanelGroup } from './group'
 import { timing } from './transition'
 import { clamp, emitter } from './utils'
@@ -80,13 +74,12 @@ const overshoot = (excess: number, limit: number) => {
   return (Math.sign(excess) * limit * distance) / (distance + limit)
 }
 
-const overshootLimit = (option: boolean | number | undefined) => {
-  if (option === undefined || option === true) {
-    return OVERSHOOT
-  }
-
-  return option === false ? 0 : Math.max(0, option)
-}
+const overshootLimit = (option: boolean | number | undefined) =>
+  option === false
+    ? 0
+    : typeof option === 'number'
+      ? Math.max(0, option)
+      : OVERSHOOT
 
 const toPixels = (value: Size, extent: number) =>
   typeof value === 'string'
@@ -98,7 +91,7 @@ const warnPlacement = (element: HTMLElement, side: Side) => {
     return
   }
   const siblings = [...(element.parentElement?.children ?? [])]
-  const fill = siblings.findIndex((node) => node.hasAttribute(FILL_ATTRIBUTE))
+  const fill = siblings.indexOf(fillOf(element) as Element)
   if (fill === -1) {
     console.warn(
       'Motion Panels: a group needs one filling panel (a Panel with no size) so sized panels can tell which edge they resize.'
@@ -171,9 +164,7 @@ export const createPanel = <S extends Size>(
   }
 
   const available = () => {
-    const filler = [...(element?.parentElement?.children ?? [])].find((node) =>
-      node.hasAttribute(FILL_ATTRIBUTE)
-    ) as HTMLElement | undefined
+    const filler = fillOf(element)
     let room = filler
       ? // oxlint-disable-next-line unicorn/prefer-number-coercion -- a computed width carries its unit: Number('649px') is NaN
         Number.parseFloat(getComputedStyle(filler)[axes.extent])
@@ -419,14 +410,13 @@ export const createPanel = <S extends Size>(
       element = node
       place()
       refit()
-      const parent = node.parentElement
-      const watch = parent ? new ResizeObserver(refit) : undefined
-      if (parent) {
-        watch?.observe(parent)
+      const watch = new ResizeObserver(refit)
+      if (node.parentElement) {
+        watch.observe(node.parentElement)
       }
 
       return () => {
-        watch?.disconnect()
+        watch.disconnect()
         release()
         unplace()
         element = null

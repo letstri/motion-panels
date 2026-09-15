@@ -83,6 +83,9 @@ export const attachSeparator = (
 
   const listeners = {
     pointerdown: (event: PointerEvent) => {
+      if (event.button !== 0) {
+        return
+      }
       dragged = false
       pressed = { clientX: event.clientX, clientY: event.clientY }
       element.setPointerCapture(event.pointerId)
