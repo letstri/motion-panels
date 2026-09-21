@@ -24,3 +24,6 @@ const EDGE_SIZE_COARSE = 20
 
 export const edgeSize = () =>
   coarsePointer.get() ? EDGE_SIZE_COARSE : EDGE_SIZE_FINE
+
+export const DEV =
+  typeof process === 'undefined' || process.env.NODE_ENV !== 'production'

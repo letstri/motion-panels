@@ -3,6 +3,7 @@ import { animate, motionValue } from 'motion'
 
 import type { Side } from './axes'
 import { fillOf, hasFillAfter, isRtl, isSeparator, lockBody } from './dom'
+import { DEV } from './env'
 import type { PanelGroup } from './group'
 import { timing } from './transition'
 import { clamp, emitter } from './utils'
@@ -19,6 +20,7 @@ export interface PanelOptions<S extends Size = Size> {
   maxSize?: Size
   minSize?: Size
   onCollapsedChange?: (collapsed: boolean) => void
+  onFoldEnd?: () => void
   // oxlint-disable-next-line typescript/method-signature-style -- bivariant on purpose: a controller of one form must still register in the group
   onSizeChange?(size: S): void
   overshoot?: boolean | number
@@ -64,9 +66,6 @@ export interface PanelController<S extends Size = Size> {
   sync(options: PanelOptions<S>, mounting?: boolean): void
   target: number
 }
-
-const DEV =
-  typeof process === 'undefined' || process.env.NODE_ENV !== 'production'
 
 const overshoot = (excess: number, limit: number) => {
   const distance = Math.abs(excess)
@@ -230,6 +229,7 @@ export const createPanel = <S extends Size>(
   const stopSettle = size.on('animationComplete', () => {
     if (size.get() === target) {
       setFolding(false)
+      options.onFoldEnd?.()
     }
   })
 
@@ -400,6 +400,9 @@ export const createPanel = <S extends Size>(
       setFolding(false)
       size.jump(target)
       content.jump(target)
+      // Nothing to animate, so no animationComplete — the settle after a drag
+      // that controlled state matched exactly still has to be reported.
+      options.onFoldEnd?.()
     } else {
       fold(target, from, mounting)
     }

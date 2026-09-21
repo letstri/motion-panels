@@ -1,5 +1,7 @@
 export type { GroupProps } from './group'
 export { Group } from './group'
+export type { HandleProps } from './handle'
+export { Handle } from './handle'
 export type {
   AnyPanelProps,
   FillPanelProps,

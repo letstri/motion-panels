@@ -108,6 +108,9 @@ importers:
       '@types/react':
         specifier: ^19.2.18
         version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19.2.7
+        version: 19.2.7(@types/react@19.2.18)
       happy-dom:
         specifier: ^20.14.0
         version: 20.14.0
@@ -117,6 +120,9 @@ importers:
       react:
         specifier: ^19.2.8
         version: 19.2.8
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.2.8(react@19.2.8)
       tsdown:
         specifier: ^0.22.14
         version: 0.22.14(typescript@5.9.3)

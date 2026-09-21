@@ -1,3 +1,4 @@
+import type { DragControls, Transition } from 'motion/react'
 import {
   createContext,
   useContext,
@@ -26,3 +27,22 @@ export const useGroup = () => {
 
   return group
 }
+
+export interface Reordering {
+  carry: (carrying: boolean) => void
+  carrying: boolean
+  transition?: Transition
+  travel: boolean
+  // oxlint-disable-next-line typescript/method-signature-style -- bivariant on purpose: a group of one value form still hands its order over
+  onOrderChange(order: unknown[]): void
+  order: unknown[]
+}
+
+export const ReorderContext = createContext<Reordering | null>(null)
+
+export interface Grip {
+  controls: DragControls
+  value: unknown
+}
+
+export const GripContext = createContext<Grip | null>(null)

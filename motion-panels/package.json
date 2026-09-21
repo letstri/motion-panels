@@ -53,9 +53,11 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
     "happy-dom": "^20.14.0",
     "motion": "^13.2.0",
     "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "tsdown": "^0.22.14",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"

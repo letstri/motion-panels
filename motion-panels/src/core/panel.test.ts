@@ -169,6 +169,22 @@ describe('createPanel', () => {
     expect(panel.state.folding).toBe(false)
   })
 
+  it('reports the settle when the synced size needs no travel', () => {
+    const options = { onFoldEnd: vi.fn(), onSizeChange: vi.fn(), size: 200 }
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, options)
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: 100, y: 0 })
+    panel.drag.end()
+    expect(options.onFoldEnd).not.toHaveBeenCalled()
+
+    panel.sync({ ...options, size: 300 })
+
+    expect(options.onFoldEnd).toHaveBeenCalledTimes(1)
+  })
+
   it('caps the default max at the room its box and the fill box measure', () => {
     const group = createPanelGroup('horizontal')
     const panel = createPanel(group, { size: 200 })

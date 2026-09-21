@@ -1,5 +1,5 @@
 export type { Axes, Orientation, Side } from './axes'
-export { FILL_ATTRIBUTE, SEPARATOR_ATTRIBUTE } from './dom'
+export { FILL_ATTRIBUTE, isRtl, SEPARATOR_ATTRIBUTE } from './dom'
 export { coarsePointer, edgeSize, reducedMotion } from './env'
 export type { GripState, Point } from './grips'
 export { grips } from './grips'

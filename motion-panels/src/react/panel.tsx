@@ -1,6 +1,6 @@
 import type { HTMLMotionProps, Transition } from 'motion/react'
 import { AnimatePresence, motion, useTransform } from 'motion/react'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 
 import type { PanelOptions, Size } from '../core'
@@ -13,28 +13,36 @@ import {
 } from '../core'
 import { useGroup, useIsomorphicLayoutEffect, useStore } from './internal'
 import { Separator } from './separator'
+import { Slot } from './slot'
 
 /**
  * `S` follows the size given: a number reports numbers, a percent string
  * reports percent strings.
  */
-export type SizedPanelProps<S extends Size = number> =
-  HTMLMotionProps<'div'> & {
-    collapsed?: boolean
-    defaultSize?: S
-    keepMounted?: boolean
-    maxSize?: Size
-    minSize?: Size
-    onCollapsedChange?: (collapsed: boolean) => void
-    onSizeChange?: (size: S) => void
-    overshoot?: boolean | number
-    size: S
-    transition?: Transition
-  }
+export type SizedPanelProps<S extends Size = number> = Omit<
+  HTMLMotionProps<'div'>,
+  'children'
+> & {
+  children?: ReactNode
+  collapsed?: boolean
+  defaultSize?: S
+  keepMounted?: boolean
+  maxSize?: Size
+  minSize?: Size
+  onCollapsedChange?: (collapsed: boolean) => void
+  onFoldEnd?: () => void
+  onSizeChange?: (size: S) => void
+  overshoot?: boolean | number
+  size: S
+  transition?: Transition
+  value?: unknown
+}
 
-export type FillPanelProps = HTMLMotionProps<'div'> & {
+export type FillPanelProps = Omit<HTMLMotionProps<'div'>, 'children'> & {
+  children?: ReactNode
   pin?: boolean
   size?: undefined
+  value?: unknown
 }
 
 export type PanelProps<S extends Size = number> =
@@ -46,19 +54,26 @@ export type AnyPanelProps =
   | SizedPanelProps
   | SizedPanelProps<`${number}%`>
 
-const FillPanel = ({ pin, style, transition, ...props }: FillPanelProps) => {
+const FillPanel = ({
+  pin,
+  style,
+  transition,
+  value,
+  ...props
+}: FillPanelProps) => {
   const {
     axes: { cross, direction, extent },
     fill,
   } = useGroup()
-  const overflow = useTransform(fill.size, (value) =>
-    value === '100%' ? 'visible' : 'clip'
+  const overflow = useTransform(fill.size, (room) =>
+    room === '100%' ? 'visible' : 'clip'
   )
   const box = { flex: 1, minHeight: 0, minWidth: 0 }
 
   return pin ? (
-    <motion.div
+    <Slot
       data-motion-panels-fill
+      value={value}
       style={{
         ...box,
         display: 'flex',
@@ -77,11 +92,12 @@ const FillPanel = ({ pin, style, transition, ...props }: FillPanelProps) => {
         }}
         {...props}
       />
-    </motion.div>
+    </Slot>
   ) : (
-    <motion.div
+    <Slot
       data-motion-panels-fill
       transition={transition}
+      value={value}
       style={{ ...box, ...style }}
       {...props}
     />
@@ -99,11 +115,13 @@ const SizedPanel = <S extends Size>({
   maxSize,
   minSize,
   onCollapsedChange,
+  onFoldEnd,
   onSizeChange,
   overshoot,
   size,
   style,
   transition,
+  value,
   ...props
 }: SizedPanelProps<S>) => {
   const group = useGroup()
@@ -115,6 +133,7 @@ const SizedPanel = <S extends Size>({
     maxSize,
     minSize,
     onCollapsedChange,
+    onFoldEnd,
     onSizeChange,
     overshoot,
     size,
@@ -172,8 +191,9 @@ const SizedPanel = <S extends Size>({
   const clipping = !!collapsed || state.dragging || state.folding
 
   return (
-    <motion.div
-      ref={elementRef}
+    <Slot
+      slotRef={elementRef}
+      value={value}
       style={{
         display: 'flex',
         flexDirection: axes.direction,
@@ -203,7 +223,7 @@ const SizedPanel = <S extends Size>({
           style={{ [axes.extent]: edge }}
         />
       )}
-    </motion.div>
+    </Slot>
   )
 }
 
