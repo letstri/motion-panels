@@ -1,0 +1,1 @@
+motion-panels — resizable panels, animated with Motion

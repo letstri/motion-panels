@@ -16,10 +16,45 @@ const heading = Merriweather({ subsets: ['latin'], variable: '--font-heading' })
 
 const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
+const SITE = 'https://motion-panels.letstri.dev'
+
+const TITLE = 'motion-panels — resizable panels, animated with Motion'
+
+const DESCRIPTION =
+  'Resizable panels animated with Motion. A framework-agnostic core with a React adapter on top. Drag by the edge or add a separator — unstyled, with no layout library underneath.'
+
 export const metadata: Metadata = {
-  description:
-    'Resizable panels animated with Motion. A framework-agnostic core with a React adapter on top.',
-  title: 'motion-panels',
+  alternates: { canonical: '/' },
+  applicationName: 'motion-panels',
+  authors: [{ name: 'letstri', url: 'https://letstri.dev' }],
+  creator: 'letstri',
+  description: DESCRIPTION,
+  keywords: [
+    'resizable panels',
+    'split pane',
+    'motion',
+    'framer motion',
+    'react',
+    'animation',
+    'layout',
+    'splitter',
+    'drag to resize',
+  ],
+  metadataBase: new URL(SITE),
+  openGraph: {
+    description: DESCRIPTION,
+    locale: 'en_US',
+    siteName: 'motion-panels',
+    title: TITLE,
+    type: 'website',
+    url: SITE,
+  },
+  title: { default: TITLE, template: '%s — motion-panels' },
+  twitter: {
+    card: 'summary_large_image',
+    description: DESCRIPTION,
+    title: TITLE,
+  },
 }
 
 const RootLayout = ({ children }: { children: ReactNode }) => (
