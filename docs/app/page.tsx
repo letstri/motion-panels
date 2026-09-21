@@ -10,6 +10,7 @@ import { Nesting } from '@/content/sections/nesting'
 import { Orientation } from '@/content/sections/orientation'
 import { Pinning } from '@/content/sections/pinning'
 import { QuickStart } from '@/content/sections/quick-start'
+import { Reordering } from '@/content/sections/reorder'
 import { SeparatorSection } from '@/content/sections/separator'
 import { Styling } from '@/content/sections/styling'
 
@@ -22,7 +23,10 @@ const DocsPage = () => (
       <div className="self-start min-[900px]:sticky min-[900px]:top-24">
         <SideNav />
       </div>
-      <main className="flex max-w-[900px] min-w-0 flex-col gap-14 [counter-reset:section]">
+      <main
+        className="flex max-w-[900px] min-w-0 flex-col gap-14 [counter-reset:section]"
+        id="content"
+      >
         <Install />
         <QuickStart />
         <SeparatorSection />
@@ -30,6 +34,7 @@ const DocsPage = () => (
         <Collapsing />
         <Pinning />
         <Nesting />
+        <Reordering />
         <BothEdges />
         <Core />
         <Styling />

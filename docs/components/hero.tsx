@@ -8,7 +8,7 @@ import { SHELL } from './layout/shell'
 const INSTALL = 'pnpm add motion-panels motion'
 
 export const Hero = () => (
-  <header className="border-b">
+  <section className="border-b">
     <div
       className={`${SHELL} grid items-center gap-10 pt-14 pb-16 min-[1000px]:grid-cols-[minmax(0,25rem)_minmax(0,1fr)] min-[1000px]:gap-14 min-[1000px]:pt-20 min-[1000px]:pb-24`}
     >
@@ -37,5 +37,5 @@ export const Hero = () => (
       </div>
       <HeroDemo />
     </div>
-  </header>
+  </section>
 )

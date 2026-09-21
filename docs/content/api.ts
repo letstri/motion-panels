@@ -21,6 +21,16 @@ export const API: {
         'boolean (default true)',
         'Pass false and reordered children jump to their new place instead of travelling, with nothing measured on the way.',
       ],
+      [
+        'order',
+        'V[]',
+        'The order the movable panels read in, one entry per panel that may move. A panel left out of it stays where it is, which is how the filling panel keeps its place.',
+      ],
+      [
+        'onOrderChange',
+        '(order: V[]) => void',
+        'The new order, after a drag or an arrow key carried a panel past its neighbour. Hand it straight to your setState: render the panels in that order and they travel there. With an order set, the group hands the trip to motion and leaves its own alone.',
+      ],
     ],
   },
   {
@@ -30,6 +40,11 @@ export const API: {
         'size',
         'number | string',
         'Current size, in pixels or as a percentage of the group extent. A percentage follows the group as it resizes. Omit it and the panel fills what is left.',
+      ],
+      [
+        'onFoldEnd',
+        '() => void',
+        'The panel finished travelling to its size — a fold, an unfold, or the settle after a drag. Sequence work on it instead of guessing at a duration: wait for the fold before reordering, and nothing moves while a panel is still closing.',
       ],
       [
         'onSizeChange',
@@ -77,11 +92,21 @@ export const API: {
         'Applied to the content while the panel folds.',
       ],
       [
+        'value',
+        'unknown',
+        'This panel entry in the group order. Given one, the panel becomes a motion reorder item that a Handle inside it can carry. Without one it never moves.',
+      ],
+      [
         'pin',
         'boolean',
         'Filling panels only. Lays the content out once per fold instead of once per frame.',
       ],
     ],
+  },
+  {
+    name: 'Handle',
+    note: "The grip that moves a panel. Renders a motion button, so anything inside it is yours, and aria-label defaults to the panel value — 'Move files' for a panel valued files — or to 'Move panel' where the value is not a string or a number. Put one anywhere inside a panel that carries a value: pressing it starts motion's reorder drag, and the arrow keys along the group axis move the panel a place at a time. Inside a panel with no value, or a group with no order, it renders nothing at all. While a panel is carried, its group takes no pointer events, so nothing lights up under it.",
+    props: [],
   },
   {
     name: 'Separator',

@@ -1,7 +1,7 @@
 'use client'
 
 import { reducedMotion } from 'motion-panels'
-import { Group, Panel, Separator } from 'motion-panels/react'
+import { Group, Handle, Panel, Separator } from 'motion-panels/react'
 import { motion, useSpring, useTransform } from 'motion/react'
 import type { ReactNode } from 'react'
 import {
@@ -47,8 +47,6 @@ const fit = (view: View, room: number) => ({
   output: view.output,
 })
 
-const SETTLE = 260
-
 const FOLD = { bounce: 0.1, type: 'spring', visualDuration: 0.34 } as const
 const TRAVEL = { bounce: 0.16, type: 'spring', visualDuration: 0.42 } as const
 
@@ -78,6 +76,9 @@ const List = ({ children }: { children: ReactNode }) => (
   </motion.ul>
 )
 
+const GRIP =
+  'flex cursor-grab items-center gap-[3px] rounded-sm px-1 py-1.5 outline-none transition-colors hover:bg-foreground/10 focus-visible:ring-[3px] focus-visible:ring-ring/50'
+
 const Slab = ({
   badge,
   bleed,
@@ -92,7 +93,17 @@ const Slab = ({
   <div className="bg-card flex h-full w-full flex-col overflow-hidden border">
     <div className="kicker text-muted-foreground/70 flex h-8 flex-none items-center justify-between gap-2 border-b px-2.5 whitespace-nowrap">
       <span>{label}</span>
-      {badge}
+      <span className="flex items-center gap-1.5">
+        {badge}
+        <Handle className={GRIP}>
+          {[0, 1, 2].map((dot) => (
+            <span
+              className="bg-muted-foreground/60 size-[3px] rounded-full"
+              key={dot}
+            />
+          ))}
+        </Handle>
+      </span>
     </div>
     <div className="relative min-h-0 flex-1 overflow-hidden">
       {children}
@@ -291,7 +302,7 @@ const Agent = () => (
 
 export const HeroDemo = () => {
   const [active, setActive] = useState('split')
-  const [lead, setLead] = useState(false)
+  const [order, setOrder] = useState(['files', 'agent'])
   const [fold, setFold] = useState({
     agent: false,
     files: false,
@@ -303,6 +314,7 @@ export const HeroDemo = () => {
   const still = useStill()
   const shown = useRef<View>(VIEWS[1])
   const beat = useRef(0)
+  const pending = useRef<string[] | null>(null)
   const roomRef = useRef(0)
   const stage = useRef<HTMLDivElement>(null)
 
@@ -324,20 +336,18 @@ export const HeroDemo = () => {
       output: room.output || kept.output,
     }))
 
+    const next = view.lead ? ['agent', 'files'] : ['files', 'agent']
     if (Boolean(view.lead) === Boolean(last.lead)) {
       return
     }
     const folding = (['agent', 'files', 'output'] as const).some(
       (key) => (room[key] === 0) !== (fit(last, roomRef.current)[key] === 0)
     )
-    clearTimeout(beat.current)
     if (folding) {
-      beat.current = window.setTimeout(
-        () => setLead(Boolean(view.lead)),
-        SETTLE
-      )
+      pending.current = next
     } else {
-      setLead(Boolean(view.lead))
+      pending.current = null
+      setOrder(next)
     }
   }, [])
 
@@ -368,11 +378,20 @@ export const HeroDemo = () => {
     return () => clearTimeout(step)
   }, [active, apply, running])
 
+  const settled = () => {
+    const next = pending.current
+    if (next) {
+      pending.current = null
+      setOrder(next)
+    }
+  }
+
   const grab = (key: keyof typeof size) => ({
     onCollapsedChange: (collapsed: boolean) => {
       setHeld(true)
       setFold((last) => ({ ...last, [key]: collapsed }))
     },
+    onFoldEnd: settled,
     onSizeChange: (next: number) => {
       setHeld(true)
       setSize((last) => ({ ...last, [key]: next }))
@@ -388,6 +407,7 @@ export const HeroDemo = () => {
       minSize={112}
       size={size.files}
       transition={FOLD}
+      value="files"
       {...grab('files')}
     >
       <Slab
@@ -408,6 +428,7 @@ export const HeroDemo = () => {
       minSize={168}
       size={size.agent}
       transition={FOLD}
+      value="agent"
       {...grab('agent')}
     >
       <Slab
@@ -448,14 +469,15 @@ export const HeroDemo = () => {
     </Panel>
   )
 
+  const sides: Record<string, ReactNode> = { agent, files }
   const seams = [
     <Separator
-      aria-label={lead ? 'Resize agent' : 'Resize files'}
+      aria-label={`Resize ${order[0]}`}
       className={SEAM}
       key="seam-a"
     />,
     <Separator
-      aria-label={lead ? 'Resize files' : 'Resize agent'}
+      aria-label={`Resize ${order[1]}`}
       className={SEAM}
       key="seam-b"
     />,
@@ -524,16 +546,32 @@ export const HeroDemo = () => {
               repeat: Number.POSITIVE_INFINITY,
             }}
           />
-          {held ? 'resume' : hover ? 'drag a seam' : running ? 'auto' : 'still'}
+          {held
+            ? 'resume'
+            : hover
+              ? 'drag a seam or a panel'
+              : running
+                ? 'auto'
+                : 'still'}
         </button>
       </div>
       <div className="bg-well relative h-[300px] p-2.5 min-[900px]:h-[420px]">
         <div className="from-foreground/[0.05] pointer-events-none absolute inset-0 bg-gradient-to-b to-transparent" />
         <div className="relative h-full" ref={stage}>
-          <Group orientation="horizontal" transition={TRAVEL}>
-            {lead
-              ? [agent, seams[0], workspace, seams[1], files]
-              : [files, seams[0], workspace, seams[1], agent]}
+          <Group
+            onOrderChange={(next) => {
+              setHeld(true)
+              setOrder(next)
+            }}
+            order={order}
+            orientation="horizontal"
+            transition={TRAVEL}
+          >
+            {sides[order[0]]}
+            {seams[0]}
+            {workspace}
+            {seams[1]}
+            {sides[order[1]]}
           </Group>
         </div>
       </div>

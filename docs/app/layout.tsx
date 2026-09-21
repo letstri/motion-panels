@@ -30,6 +30,12 @@ const RootLayout = ({ children }: { children: ReactNode }) => (
   >
     <body className="text-[15px]/[1.65] antialiased">
       <ThemeProvider attribute="class" disableTransitionOnChange enableSystem>
+        <a
+          className="bg-background focus:ring-ring/50 sr-only px-4 py-2 no-underline focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-100 focus:ring-2"
+          href="#content"
+        >
+          Skip to content
+        </a>
         <SiteHeader />
         {children}
         <SiteFooter />

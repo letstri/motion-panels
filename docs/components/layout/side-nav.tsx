@@ -22,6 +22,7 @@ const GROUPS = [
   {
     items: [
       { id: 'nesting', navTitle: 'Nesting' },
+      { id: 'reordering', navTitle: 'Reordering' },
       { id: 'both-edges', navTitle: 'Both edges' },
     ],
     title: 'Layouts',
