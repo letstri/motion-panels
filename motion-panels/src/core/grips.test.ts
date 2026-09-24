@@ -20,18 +20,19 @@ describe('grips', () => {
   })
 
   it('re-measures after a panel resize moves the grips', () => {
-    const group = createPanelGroup('horizontal')
-    const moving = createPanel(group, { size: 200 })
-    const still = createPanel(group, { size: 200 })
+    const moving = createPanel(createPanelGroup('horizontal'), { size: 200 })
+    const still = createPanel(createPanelGroup('vertical'), { size: 200 })
     let left = 0
     const unregister = [
       grips.register(
         grip(() => rect(left, 0)),
-        moving
+        moving,
+        'Inline'
       ),
       grips.register(
         grip(() => rect(0, 0)),
-        still
+        still,
+        'Block'
       ),
     ]
 
@@ -41,6 +42,39 @@ describe('grips', () => {
     moving.motion.size.jump(300)
 
     expect(grips.at({ clientX: 5, clientY: 5 })).toHaveLength(0)
+
+    for (const stop of unregister) {
+      stop()
+    }
+  })
+
+  it('never joins parallel grips stacked in one place', () => {
+    const group = createPanelGroup('vertical')
+    const [top, bottom, side] = [
+      grip(() => rect(0, 0)),
+      grip(() => rect(0, 0)),
+      grip(() => rect(0, 0)),
+    ]
+    const unregister = [
+      grips.register(top, createPanel(group, { size: 200 }), 'Block'),
+      grips.register(
+        bottom,
+        createPanel(createPanelGroup('vertical'), { size: 0 }),
+        'Block'
+      ),
+    ]
+
+    expect(grips.at({ clientX: 5, clientY: 5 }, bottom)).toHaveLength(0)
+
+    unregister.push(
+      grips.register(
+        side,
+        createPanel(createPanelGroup('horizontal'), { size: 200 }),
+        'Inline'
+      )
+    )
+
+    expect(grips.at({ clientX: 5, clientY: 5 }, bottom)).toEqual([bottom, side])
 
     for (const stop of unregister) {
       stop()

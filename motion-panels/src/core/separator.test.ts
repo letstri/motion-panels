@@ -75,12 +75,13 @@ describe('attachSeparator', () => {
     const { grip, panel } = mount()
     const other = document.createElement('div')
     const detach = [
-      createPanel(group, { onSizeChange, size: 200 }),
-      createPanel(createPanelGroup('vertical'), { onSizeChange, size: 100 }),
-    ].map((controller, index) => {
+      { element: grip, group, size: 200 },
+      { element: other, group: createPanelGroup('vertical'), size: 100 },
+    ].map(({ element, group: owner, size }, index) => {
+      const controller = createPanel(owner, { onSizeChange, size })
       controller.attach(index === 0 ? panel : other)
 
-      return attachSeparator(index === 0 ? grip : other, group, controller)
+      return attachSeparator(element, owner, controller)
     })
 
     // Both grips measure as an empty rect at the origin, so they cross there.

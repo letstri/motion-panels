@@ -69,7 +69,9 @@ export const attachSeparator = (
       unregister()
       unwatch()
       panel = next
-      unregister = panel ? grips.register(element, panel) : noop
+      unregister = panel
+        ? grips.register(element, panel, group.axes.axis)
+        : noop
       unwatch = panel ? panel.subscribe(render) : noop
     }
     render()
@@ -90,12 +92,12 @@ export const attachSeparator = (
       pressed = { clientX: event.clientX, clientY: event.clientY }
       element.setPointerCapture(event.pointerId)
       grips.invalidate()
-      grips.mark('held', grips.at(event))
+      grips.mark('held', grips.at(event, element))
     },
     pointermove: (event: PointerEvent) => {
       if (!pressed) {
         if (!resizing()) {
-          grips.mark('crossed', grips.at(event))
+          grips.mark('crossed', grips.at(event, element))
         }
 
         return
@@ -110,7 +112,7 @@ export const attachSeparator = (
         }
         dragging = true
         dragged = true
-        partners = grips.partners(grips.at(pressed), element)
+        partners = grips.partners(grips.at(pressed, element), element)
         each((target) =>
           target.drag.start(partners.length > 0 ? 'move' : undefined)
         )
@@ -122,7 +124,7 @@ export const attachSeparator = (
       if (dragging) {
         each((target) => target.drag.end())
         grips.invalidate()
-        grips.mark('crossed', grips.at(event))
+        grips.mark('crossed', grips.at(event, element))
       }
       settle()
     },
@@ -141,7 +143,7 @@ export const attachSeparator = (
       if (!dragged) {
         for (const target of [
           panel,
-          ...grips.partners(grips.at(event), element),
+          ...grips.partners(grips.at(event, element), element),
         ]) {
           target?.reset()
         }

@@ -1,3 +1,4 @@
+import type { Axes } from './axes'
 import { coarsePointer } from './env'
 import type { PanelController } from './panel'
 import { emitter } from './utils'
@@ -12,11 +13,16 @@ export interface Point {
   clientY: number
 }
 
-const registry = new Map<HTMLElement, PanelController>()
+const registry = new Map<
+  HTMLElement,
+  { axis: Axes['axis']; controller: PanelController }
+>()
 const bus = emitter()
 const marks = { crossed: new Set<HTMLElement>(), held: new Set<HTMLElement>() }
 
-let rects: { element: HTMLElement; rect: DOMRect }[] | null = null
+let rects:
+  | { axis: Axes['axis']; element: HTMLElement; rect: DOMRect }[]
+  | null = null
 let watching: AbortController | undefined
 
 const invalidate = () => {
@@ -24,7 +30,8 @@ const invalidate = () => {
 }
 
 const measure = () => {
-  rects ??= [...registry.keys()].map((element) => ({
+  rects ??= [...registry].map(([element, { axis }]) => ({
+    axis,
     element,
     rect: element.getBoundingClientRect(),
   }))
@@ -37,7 +44,9 @@ const sameSet = (elements: HTMLElement[], current: Set<HTMLElement>) =>
   elements.every((element) => current.has(element))
 
 export const grips = {
-  at(point: Point) {
+  // Grips under the point, one per axis with `self` first: parallel grips
+  // stacked in one place (panels folded to the same edge) never move together.
+  at(point: Point, self?: HTMLElement) {
     if (registry.size < 2) {
       return []
     }
@@ -50,9 +59,17 @@ export const grips = {
           point.clientY >= rect.top - margin &&
           point.clientY <= rect.bottom + margin
       )
-      .map(({ element }) => element)
+      .toSorted(
+        (a, b) => Number(b.element === self) - Number(a.element === self)
+      )
+    const axes = new Map<Axes['axis'], HTMLElement>()
+    for (const { axis, element } of hits) {
+      if (!axes.has(axis)) {
+        axes.set(axis, element)
+      }
+    }
 
-    return hits.length > 1 ? hits : []
+    return axes.size > 1 ? [...axes.values()] : []
   },
   invalidate,
   mark(key: 'crossed' | 'held', elements: HTMLElement[]) {
@@ -65,11 +82,15 @@ export const grips = {
   partners(elements: HTMLElement[], self: HTMLElement | null) {
     return elements
       .filter((element) => element !== self)
-      .map((element) => registry.get(element))
+      .map((element) => registry.get(element)?.controller)
       .filter((controller) => controller !== undefined)
   },
-  register(element: HTMLElement, controller: PanelController) {
-    registry.set(element, controller)
+  register(
+    element: HTMLElement,
+    controller: PanelController,
+    axis: Axes['axis']
+  ) {
+    registry.set(element, { axis, controller })
     invalidate()
     if (!watching && typeof window !== 'undefined') {
       watching = new AbortController()
