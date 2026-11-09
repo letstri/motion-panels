@@ -99,13 +99,18 @@ export const API: {
       [
         'pin',
         'boolean',
-        'Filling panels only. Lays the content out once per fold instead of once per frame.',
+        'Holds the whole content still: laid out once per fold (filling panels) and once per drag (filling and sized panels) instead of once per frame, at the largest size the motion can reach, with the panel edge clipping it. For a framed panel, put a Pin around the heavy part instead.',
       ],
     ],
   },
   {
     name: 'Handle',
     note: "The grip that moves a panel. Renders a motion button, so anything inside it is yours, and aria-label defaults to the panel value — 'Move files' for a panel valued files — or to 'Move panel' where the value is not a string or a number. Put one anywhere inside a panel that carries a value: pressing it starts motion's reorder drag, and the arrow keys along the group axis move the panel a place at a time. Inside a panel with no value, or a group with no order, it renders nothing at all. While a panel is carried, its group takes no pointer events, so nothing lights up under it.",
+    props: [],
+  },
+  {
+    name: 'Pin',
+    note: 'A div that holds still while any panel around it drags or folds, so what it wraps lays out at the start and end of the motion instead of on every frame. Place it around the expensive part of a panel (an editor, a virtualised list, a chart) and leave the frame, headers and toolbars outside it: they keep following the pointer. While held it keeps its start edge, its parent clips the far end, and once the motion pauses it lays out once at the size on screen. Outside a Group it is a plain div.',
     props: [],
   },
   {
@@ -158,6 +163,11 @@ export const API: {
         'Calls onSizeChange with defaultSize, or the size the panel mounted with. The double-click.',
       ],
       [
+        'controller.reach',
+        'number | null',
+        'The largest size the drag or fold under way can take the panel to, null at rest.',
+      ],
+      [
         'controller.state',
         '{ bare, dragging, end, folding }',
         'Read it through subscribe. A frozen object, replaced only when it changes.',
@@ -170,7 +180,7 @@ export const API: {
       [
         'controller.destroy',
         '() => void',
-        'Drops the listeners and any body lock the panel still holds. Call it after the detach.',
+        'Drops the listeners and any drag veil the panel still holds. Call it after the detach.',
       ],
       [
         'controller.drag',

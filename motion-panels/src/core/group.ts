@@ -7,9 +7,11 @@ import type { PanelController } from './panel'
 import { emitter } from './utils'
 
 export interface PanelGroup {
+  attachFill: (element: HTMLElement) => () => void
   axes: Axes
   fill: {
     anchor: MotionValue<string>
+    box: HTMLElement | null
     size: MotionValue<number | string>
   }
   notify: () => void
@@ -21,13 +23,24 @@ export const createPanelGroup = (
   orientation: Orientation = 'horizontal'
 ): PanelGroup => {
   const bus = emitter()
+  const fill: PanelGroup['fill'] = {
+    anchor: motionValue('flex-start'),
+    box: null,
+    size: motionValue<number | string>('100%'),
+  }
 
   return {
-    axes: AXES[orientation],
-    fill: {
-      anchor: motionValue('flex-start'),
-      size: motionValue<number | string>('100%'),
+    attachFill: (element) => {
+      fill.box = element
+
+      return () => {
+        if (fill.box === element) {
+          fill.box = null
+        }
+      }
     },
+    axes: AXES[orientation],
+    fill,
     notify: bus.emit,
     panels: new Map(),
     subscribe: bus.subscribe,

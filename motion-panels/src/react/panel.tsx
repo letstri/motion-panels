@@ -1,17 +1,23 @@
 import type { HTMLMotionProps, Transition } from 'motion/react'
 import { AnimatePresence, motion, useTransform } from 'motion/react'
 import type { ReactElement, ReactNode } from 'react'
-import { useRef, useState } from 'react'
+import { useContext, useMemo, useRef, useState } from 'react'
 
 import type { PanelOptions, Size } from '../core'
 import {
   coarsePointer,
   createPanel,
   edgeSize,
+  pinSource,
   reducedMotion,
   timing,
 } from '../core'
-import { useGroup, useIsomorphicLayoutEffect, useStore } from './internal'
+import {
+  PinContext,
+  useGroup,
+  useIsomorphicLayoutEffect,
+  useStore,
+} from './internal'
 import { Separator } from './separator'
 import { Slot } from './slot'
 
@@ -33,6 +39,7 @@ export type SizedPanelProps<S extends Size = number> = Omit<
   onFoldEnd?: () => void
   onSizeChange?: (size: S) => void
   overshoot?: boolean | number
+  pin?: boolean
   size: S
   transition?: Transition
   value?: unknown
@@ -55,16 +62,30 @@ export type AnyPanelProps =
   | SizedPanelProps<`${number}%`>
 
 const FillPanel = ({
+  children,
   pin,
   style,
   transition,
   value,
   ...props
 }: FillPanelProps) => {
+  const group = useGroup()
   const {
     axes: { cross, direction, extent },
     fill,
-  } = useGroup()
+  } = group
+  const slotRef = useRef<HTMLDivElement>(null)
+  const parent = useContext(PinContext)
+  const sources = useMemo(
+    () => [...parent, pinSource.fill(group)],
+    [group, parent]
+  )
+
+  useIsomorphicLayoutEffect(
+    () => (slotRef.current ? group.attachFill(slotRef.current) : undefined),
+    [group]
+  )
+  const content = <PinContext value={sources}>{children}</PinContext>
   const overflow = useTransform(fill.size, (room) =>
     room === '100%' ? 'visible' : 'clip'
   )
@@ -73,6 +94,7 @@ const FillPanel = ({
   return pin ? (
     <Slot
       data-motion-panels-fill
+      slotRef={slotRef}
       value={value}
       style={{
         ...box,
@@ -91,21 +113,27 @@ const FillPanel = ({
           [extent]: fill.size,
         }}
         {...props}
-      />
+      >
+        {content}
+      </motion.div>
     </Slot>
   ) : (
     <Slot
       data-motion-panels-fill
+      slotRef={slotRef}
       transition={transition}
       value={value}
       style={{ ...box, ...style }}
       {...props}
-    />
+    >
+      {content}
+    </Slot>
   )
 }
 
 const SizedPanel = <S extends Size>({
   animate,
+  children,
   collapsed,
   custom,
   defaultSize,
@@ -118,6 +146,7 @@ const SizedPanel = <S extends Size>({
   onFoldEnd,
   onSizeChange,
   overshoot,
+  pin,
   size,
   style,
   transition,
@@ -136,6 +165,7 @@ const SizedPanel = <S extends Size>({
     onFoldEnd,
     onSizeChange,
     overshoot,
+    pin,
     size,
     transition,
   }
@@ -145,6 +175,11 @@ const SizedPanel = <S extends Size>({
   const edge = useStore(coarsePointer.subscribe, edgeSize)
   useStore(reducedMotion.subscribe, reducedMotion.get)
   const extent = useTransform(panel.motion.size, Math.abs)
+  const parent = useContext(PinContext)
+  const sources = useMemo(
+    () => [...parent, pinSource.sized(panel, axes)],
+    [axes, panel, parent]
+  )
 
   const closedPose =
     exit ?? (typeof initial === 'boolean' ? undefined : initial)
@@ -185,7 +220,9 @@ const SizedPanel = <S extends Size>({
       }}
       {...props}
       {...pose}
-    />
+    >
+      <PinContext value={sources}>{children}</PinContext>
+    </motion.div>
   )
 
   const clipping = !!collapsed || state.dragging || state.folding

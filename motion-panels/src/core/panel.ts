@@ -24,6 +24,7 @@ export interface PanelOptions<S extends Size = Size> {
   // oxlint-disable-next-line typescript/method-signature-style -- bivariant on purpose: a controller of one form must still register in the group
   onSizeChange?(size: S): void
   overshoot?: boolean | number
+  pin?: boolean
   size: S
   transition?: Transition
 }
@@ -58,6 +59,8 @@ export interface PanelController<S extends Size = Size> {
     size: MotionValue<number>
   }
   options: PanelOptions<S>
+  // The largest size the drag or fold under way can take the panel to; null at rest.
+  reach: number | null
   reset: () => void
   resizeByKey: (event: PanelKeyEvent) => void
   state: PanelState
@@ -144,6 +147,7 @@ export const createPanel = <S extends Size>(
     folding: false,
   }
   let unlock: (() => void) | undefined
+  let reach: number | null = null
 
   const session = {
     collapsed: false,
@@ -192,21 +196,40 @@ export const createPanel = <S extends Size>(
   const growSign = () =>
     (state.end ? 1 : -1) * (axes.point === 'x' && isRtl(element) ? -1 : 1)
 
-  const setFolding = (folding: boolean) => {
-    if (folding === state.folding) {
-      return
-    }
-    patch({ folding })
-    if (folding) {
-      fill.anchor.set(state.end ? 'flex-end' : 'flex-start')
-      fill.size.jump(available() - target)
-    } else if (![...panels.values()].some((panel) => panel.state.folding)) {
+  const holdFill = (room: number) => {
+    fill.anchor.set(state.end ? 'flex-end' : 'flex-start')
+    fill.size.jump(room)
+  }
+
+  const freeFill = () => {
+    if (
+      ![...panels.values()].some(
+        (panel) => panel.state.folding || panel.state.dragging
+      )
+    ) {
       fill.size.jump('100%')
     }
   }
 
+  const setFolding = (folding: boolean) => {
+    if (folding === state.folding) {
+      return
+    }
+    if (!folding) {
+      reach = null
+    }
+    patch({ folding })
+    if (folding) {
+      holdFill(available() - target)
+    } else {
+      freeFill()
+    }
+  }
+
   const fold = (to: number, from: number, mounting?: boolean) => {
+    reach = Math.max(reach ?? 0, to, size.get())
     setFolding(true)
+    notify()
     const closed = size.get() === 0
     if (closed) {
       content.jump(to)
@@ -240,6 +263,7 @@ export const createPanel = <S extends Size>(
 
   const stopDragging = () => {
     release()
+    reach = null
     patch({ dragging: false })
   }
 
@@ -253,10 +277,15 @@ export const createPanel = <S extends Size>(
         start: size.get(),
         wasCollapsed: collapsed,
       })
+      holdFill(available())
       release()
       unlock = lockBody(cursor, drag.cancel)
       setFolding(false)
+      reach = session.max + overshootLimit(options.overshoot)
       patch({ dragging: true })
+      if (options.pin) {
+        content.jump(reach)
+      }
     },
     move: (offset) => {
       const pixels = session.start + offset[axes.point] * session.sign
@@ -272,7 +301,7 @@ export const createPanel = <S extends Size>(
         options.onCollapsedChange?.(collapsed)
       }
       size.jump(next)
-      if (!collapsed) {
+      if (!collapsed && !options.pin) {
         content.jump(next)
       }
       session.collapsed = collapsed
@@ -282,6 +311,10 @@ export const createPanel = <S extends Size>(
         return
       }
       stopDragging()
+      freeFill()
+      if (options.pin && !session.collapsed) {
+        content.jump(size.get())
+      }
       if (!session.collapsed) {
         options.onSizeChange?.(
           report(Math.round(clamp(size.get(), session.min, session.max)))
@@ -301,6 +334,7 @@ export const createPanel = <S extends Size>(
         options.onCollapsedChange?.(session.wasCollapsed)
       }
       stopDragging()
+      freeFill()
     },
   }
 
@@ -436,6 +470,9 @@ export const createPanel = <S extends Size>(
     motion: { content, size },
     get options() {
       return options
+    },
+    get reach() {
+      return reach
     },
     reset: () => {
       if (options.collapsed) {

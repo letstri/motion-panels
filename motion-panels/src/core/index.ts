@@ -14,6 +14,8 @@ export type {
   Size,
 } from './panel'
 export { createPanel } from './panel'
+export type { PinSource } from './pin'
+export { attachPin, pinSource } from './pin'
 export { reorder } from './reorder'
 export { attachSeparator } from './separator'
 export { timing, TRANSITION } from './transition'

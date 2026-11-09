@@ -2,6 +2,7 @@ import type * as Motion from 'motion'
 import { animate, motionValue } from 'motion'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { VEIL_ATTRIBUTE } from './dom'
 import { createPanelGroup } from './group'
 import type { PanelController } from './panel'
 import { createPanel } from './panel'
@@ -14,6 +15,8 @@ vi.mock('motion', async (original) => {
 })
 
 const PARENT_SIZE = 1000
+
+const veil = () => document.querySelector<HTMLElement>(`[${VEIL_ATTRIBUTE}]`)
 
 const key = (name: string, shiftKey = false) => ({
   key: name,
@@ -214,6 +217,55 @@ describe('createPanel', () => {
 
     panel.sync({ ...options, collapsed: true })
     expect(group.fill.size.get()).toBe(900)
+  })
+
+  it('holds the fill at its widest while a drag lasts', () => {
+    const options = { size: 200 }
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, options)
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: 100, y: 0 })
+    expect(group.fill.size.get()).toBe(PARENT_SIZE)
+    expect(group.fill.anchor.get()).toBe('flex-end')
+
+    panel.drag.end()
+    panel.sync({ ...options, size: 300 })
+    expect(group.fill.size.get()).toBe('100%')
+  })
+
+  it('lays a pinned panel out once per drag', () => {
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, {
+      maxSize: 400,
+      overshoot: false,
+      pin: true,
+      size: 200,
+    })
+    panel.attach(mount())
+
+    panel.drag.start()
+    expect(panel.motion.content.get()).toBe(400)
+    panel.drag.move({ x: 50, y: 0 })
+    panel.drag.move({ x: -50, y: 0 })
+    expect(panel.motion.content.get()).toBe(400)
+
+    panel.drag.end()
+    expect(panel.motion.content.get()).toBe(150)
+  })
+
+  it('frees the fill when a drag is cancelled', () => {
+    const group = createPanelGroup('horizontal')
+    const panel = createPanel(group, { pin: true, size: 200 })
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: 100, y: 0 })
+    panel.drag.cancel()
+
+    expect(group.fill.size.get()).toBe('100%')
+    expect(panel.motion.content.get()).toBe(200)
   })
 
   it('resolves percentage bounds against the group extent', () => {
@@ -426,7 +478,7 @@ describe('createPanel', () => {
     warn.mockRestore()
   })
 
-  it('restores the body cursor after two panels drag together', () => {
+  it('lifts the drag veil only after two panels dragging together end', () => {
     const first = createPanel(createPanelGroup('horizontal'), { size: 200 })
     const second = createPanel(createPanelGroup('horizontal'), { size: 200 })
     first.attach(mount())
@@ -434,11 +486,12 @@ describe('createPanel', () => {
 
     first.drag.start('move')
     second.drag.start('move')
-    expect(document.body.style.cursor).toBe('move')
+    expect(veil()?.style.cursor).toBe('move')
 
     first.drag.end()
+    expect(veil()).not.toBeNull()
     second.drag.end()
-    expect(document.body.style.cursor).toBe('')
+    expect(veil()).toBeNull()
   })
 
   it('expands a collapsed panel from the keyboard', () => {

@@ -7,7 +7,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 
-import type { PanelGroup } from '../core'
+import type { PanelGroup, PinSource } from '../core'
 
 export const useIsomorphicLayoutEffect =
   typeof window === 'undefined' ? useEffect : useLayoutEffect
@@ -46,3 +46,5 @@ export interface Grip {
 }
 
 export const GripContext = createContext<Grip | null>(null)
+
+export const PinContext = createContext<PinSource[]>([])
