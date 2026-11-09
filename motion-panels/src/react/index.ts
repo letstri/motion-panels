@@ -10,5 +10,7 @@ export type {
 } from './panel'
 export type { Size } from '../core'
 export { Panel } from './panel'
+export type { PinProps } from './pin'
+export { Pin } from './pin'
 export type { SeparatorProps } from './separator'
 export { Separator } from './separator'

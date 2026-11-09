@@ -37,7 +37,7 @@ export const attachSeparator = (
     }
   }
 
-  const render = () => {
+  const renderGrip = () => {
     const hit = grips.state(element)
     element.toggleAttribute('data-resizing', resizing())
     element.toggleAttribute('data-crossing', hit === 'crossed' && !resizing())
@@ -50,7 +50,12 @@ export const attachSeparator = (
         element.style.cursor = cursor
       }
     }
-    if (panel) {
+  }
+
+  // Bounds read layout, so a drag, which holds them in its session, skips them.
+  const render = () => {
+    renderGrip()
+    if (panel && !panel.state.dragging) {
       const { max, min } = panel.bounds()
       element.setAttribute('aria-valuenow', String(panel.target))
       element.setAttribute('aria-valuetext', `${panel.target} pixels`)
@@ -158,7 +163,7 @@ export const attachSeparator = (
       signal: controller.signal,
     })
   }
-  const unsubscribe = [group.subscribe(bind), grips.subscribe(render)]
+  const unsubscribe = [group.subscribe(bind), grips.subscribe(renderGrip)]
   bind()
 
   return () => {

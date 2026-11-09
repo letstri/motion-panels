@@ -7,15 +7,17 @@ export const Pinning = () => (
   <Section
     id="pinning"
     title="Pinning"
-    lead="A filling panel reflows its content on every frame of a fold. A pinned one sizes the content once, up front, and anchors it to the edge that is not moving, so the content holds still while the fold slides the panel edge across it. Toggle the pin off and watch the paragraph rewrap the whole way through."
+    lead="A panel reflows its content on every frame of a fold or a drag. A pinned one sizes the content once, up front, and anchors it to the edge that is not moving, so the content holds still while the panel edge slides across it. A drag sizes it to the largest extent the drag can reach. Toggle the pin off and watch the paragraph rewrap the whole way through."
   >
     <PinDemo />
     <p className={ASIDE}>
-      Pin content that bleeds to its own edges: an editor, a document, a table.
-      A block with its own border or rounded corners shows that edge jumping
-      instead, which is why the paragraph here has no frame of its own. The
-      anchor follows the fold, so a sized panel placed after the filling one
-      pins to the start edge instead.
+      The pin prop holds the whole panel content, so use it for content that
+      bleeds to its own edges: an editor, a document, a table. A panel with a
+      frame of its own (a card with a border, a header, a toolbar) wraps only
+      its heavy part in a Pin instead: the frame keeps following the pointer,
+      the Pin holds still inside it and its parent clips the far end like a
+      viewport, and when the pointer rests it lays out once at the size on
+      screen.
     </p>
     <Code
       code={`
@@ -23,7 +25,7 @@ import type { ReactNode } from 'react'
 declare function FileTree(): ReactNode
 declare function Document(): ReactNode
 // ---cut---
-import { Group, Panel, Separator } from 'motion-panels/react'
+import { Group, Panel, Pin, Separator } from 'motion-panels/react'
 import { useState } from 'react'
 
 export function Workspace() {
@@ -42,8 +44,11 @@ export function Workspace() {
         <FileTree />
       </Panel>
       <Separator />
-      <Panel pin>
-        <Document />
+      <Panel className="card">
+        <header>Document</header>
+        <Pin className="viewport">
+          <Document />
+        </Pin>
       </Panel>
     </Group>
   )
