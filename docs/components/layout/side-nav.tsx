@@ -15,6 +15,7 @@ const GROUPS = [
       { id: 'separator', navTitle: 'Separator' },
       { id: 'orientation', navTitle: 'Orientation' },
       { id: 'collapsing', navTitle: 'Collapsing and folds' },
+      { id: 'rail', navTitle: 'Collapsing to a rail' },
       { id: 'pinning', navTitle: 'Pinning' },
     ],
     title: 'Panels',

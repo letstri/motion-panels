@@ -16,6 +16,7 @@ export type Size = number | `${number}%`
 
 export interface PanelOptions<S extends Size = Size> {
   collapsed?: boolean
+  collapsedSize?: Size
   defaultSize?: S
   maxSize?: Size
   minSize?: Size
@@ -136,8 +137,17 @@ export const createPanel = <S extends Size>(
     return `${total > 0 ? Math.round((value / total) * 10_000) / 100 : 0}%` as S
   }
 
-  const size = motionValue(initial.collapsed ? 0 : measure())
-  const content = motionValue(measure())
+  // A panel collapsed to a size of its own is a narrower layout (a rail of icons), so its content follows the size instead of staying at the open one.
+  const collapsedPixels = () =>
+    options.collapsedSize === undefined
+      ? 0
+      : Math.round(toPixels(options.collapsedSize, extent()))
+  const rest = () => (options.collapsed ? collapsedPixels() : measure())
+  const restingContent = () =>
+    options.collapsed && collapsedPixels() > 0 ? collapsedPixels() : measure()
+
+  const size = motionValue(rest())
+  const content = motionValue(restingContent())
 
   let target = size.get()
   let state: PanelState = {
@@ -226,7 +236,12 @@ export const createPanel = <S extends Size>(
     }
   }
 
-  const fold = (to: number, from: number, mounting?: boolean) => {
+  const fold = (
+    to: number,
+    from: number,
+    mounting?: boolean,
+    toggles = from === 0 || to === 0
+  ) => {
     reach = Math.max(reach ?? 0, to, size.get())
     setFolding(true)
     notify()
@@ -238,8 +253,7 @@ export const createPanel = <S extends Size>(
       if (!closed && to > 0) {
         animate(content, to, timing())
       }
-      const transition =
-        from === 0 || to === 0 ? timing(options.transition) : timing()
+      const transition = toggles ? timing(options.transition) : timing()
       animate(size, to, transition)
     }
     if (closed && mounting) {
@@ -252,6 +266,8 @@ export const createPanel = <S extends Size>(
   const stopSettle = size.on('animationComplete', () => {
     if (size.get() === target) {
       setFolding(false)
+      // The group may have resized mid-fold, when a percentage size could not follow it.
+      refit()
       options.onFoldEnd?.()
     }
   })
@@ -277,31 +293,33 @@ export const createPanel = <S extends Size>(
         start: size.get(),
         wasCollapsed: collapsed,
       })
-      holdFill(available())
+      // Held where it stands until the drag ends: content laid out wider than its box rewraps and slides under the other panel before the pointer has done anything.
+      holdFill(available() - size.get())
+      // A fold under way would keep moving content the drag means to hold.
+      content.stop()
       release()
       unlock = lockBody(cursor, drag.cancel)
       setFolding(false)
       reach = session.max + overshootLimit(options.overshoot)
       patch({ dragging: true })
-      if (options.pin) {
-        content.jump(reach)
-      }
     },
     move: (offset) => {
       const pixels = session.start + offset[axes.point] * session.sign
-      const collapsed = !!options.onCollapsedChange && pixels < session.min / 2
+      const rail = collapsedPixels()
+      const collapsed =
+        !!options.onCollapsedChange && pixels < (session.min + rail) / 2
       const clamped = clamp(pixels, session.min, session.max)
       const limit = overshootLimit(options.overshoot)
       const stretched =
         limit > 0
           ? Math.max(0, clamped + overshoot(pixels - clamped, limit))
           : clamped
-      const next = collapsed ? 0 : Math.round(stretched)
+      const next = collapsed ? rail : Math.round(stretched)
       if (collapsed !== session.collapsed) {
         options.onCollapsedChange?.(collapsed)
       }
       size.jump(next)
-      if (!collapsed && !options.pin) {
+      if ((!collapsed || rail > 0) && !options.pin) {
         content.jump(next)
       }
       session.collapsed = collapsed
@@ -312,7 +330,7 @@ export const createPanel = <S extends Size>(
       }
       stopDragging()
       freeFill()
-      if (options.pin && !session.collapsed) {
+      if (options.pin && (!session.collapsed || collapsedPixels() > 0)) {
         content.jump(size.get())
       }
       if (!session.collapsed) {
@@ -320,7 +338,9 @@ export const createPanel = <S extends Size>(
           report(Math.round(clamp(size.get(), session.min, session.max)))
         )
       }
-      if (size.get() !== target) {
+      if (size.get() === target) {
+        refit()
+      } else {
         fold(target, size.get())
       }
     },
@@ -335,6 +355,7 @@ export const createPanel = <S extends Size>(
       }
       stopDragging()
       freeFill()
+      refit()
     },
   }
 
@@ -364,7 +385,9 @@ export const createPanel = <S extends Size>(
       return
     }
     event.preventDefault()
-    const value = clamp(next, min, max)
+    // Percentage bounds resolve to fractions of a pixel; the size handed back stays whole and inside them.
+    const low = Math.ceil(min)
+    const value = clamp(Math.round(next), low, Math.max(low, Math.floor(max)))
     if (options.collapsed && value > 0) {
       options.onCollapsedChange?.(false)
     }
@@ -398,11 +421,14 @@ export const createPanel = <S extends Size>(
   }
 
   const refit = () => {
-    if (typeof options.size !== 'string' || state.dragging || state.folding) {
+    const relative =
+      typeof options.size === 'string' ||
+      typeof options.collapsedSize === 'string'
+    if (!relative || state.dragging || state.folding) {
       return
     }
-    const value = options.collapsed ? 0 : measure()
-    content.jump(measure())
+    const value = rest()
+    content.jump(restingContent())
     if (value === target) {
       return
     }
@@ -413,13 +439,13 @@ export const createPanel = <S extends Size>(
   }
 
   const sync = (next: PanelOptions<S>, mounting?: boolean) => {
+    const toggles = !!next.collapsed !== !!options.collapsed
     options = next
     place()
-    const measured = measure()
     if (size.get() === 0 && !state.dragging) {
-      content.jump(measured)
+      content.jump(measure())
     }
-    const value = next.collapsed ? 0 : measured
+    const value = rest()
     if (value === target) {
       return
     }
@@ -438,7 +464,7 @@ export const createPanel = <S extends Size>(
       // that controlled state matched exactly still has to be reported.
       options.onFoldEnd?.()
     } else {
-      fold(target, from, mounting)
+      fold(target, from, mounting, toggles || from === 0 || target === 0)
     }
   }
 

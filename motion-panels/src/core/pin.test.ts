@@ -60,7 +60,7 @@ describe('attachPin', () => {
     attachPin(pinned, [pinSource.fill(group)])
 
     panel.drag.start()
-    expect(pinned.style.width).toBe(`${PARENT_SIZE}px`)
+    expect(pinned.style.width).toBe(`${PARENT_SIZE - 200}px`)
 
     panel.drag.cancel()
     expect(pinned.style.width).toBe('')

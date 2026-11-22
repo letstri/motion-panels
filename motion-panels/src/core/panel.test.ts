@@ -219,16 +219,20 @@ describe('createPanel', () => {
     expect(group.fill.size.get()).toBe(900)
   })
 
-  it('holds the fill at its widest while a drag lasts', () => {
+  it('holds the fill where it stands while a drag lasts', () => {
     const options = { size: 200 }
     const group = createPanelGroup('horizontal')
     const panel = createPanel(group, options)
     panel.attach(mount())
 
     panel.drag.start()
+    expect(group.fill.size.get()).toBe(PARENT_SIZE - 200)
     panel.drag.move({ x: 100, y: 0 })
-    expect(group.fill.size.get()).toBe(PARENT_SIZE)
+    expect(group.fill.size.get()).toBe(PARENT_SIZE - 200)
     expect(group.fill.anchor.get()).toBe('flex-end')
+    panel.drag.move({ x: -150, y: 0 })
+    expect(group.fill.size.get()).toBe(PARENT_SIZE - 200)
+    panel.drag.move({ x: 100, y: 0 })
 
     panel.drag.end()
     panel.sync({ ...options, size: 300 })
@@ -246,10 +250,13 @@ describe('createPanel', () => {
     panel.attach(mount())
 
     panel.drag.start()
-    expect(panel.motion.content.get()).toBe(400)
-    panel.drag.move({ x: 50, y: 0 })
+    expect(panel.motion.content.get()).toBe(200)
     panel.drag.move({ x: -50, y: 0 })
-    expect(panel.motion.content.get()).toBe(400)
+    expect(panel.motion.content.get()).toBe(200)
+    panel.drag.move({ x: 150, y: 0 })
+    expect(panel.motion.content.get()).toBe(200)
+    panel.drag.move({ x: -50, y: 0 })
+    expect(panel.motion.content.get()).toBe(200)
 
     panel.drag.end()
     expect(panel.motion.content.get()).toBe(150)
@@ -360,6 +367,113 @@ describe('createPanel', () => {
     expect(panel.motion.size.get()).toBe(200)
   })
 
+  it('collapses to collapsedSize, with the content following the size', () => {
+    const options = {
+      collapsedSize: 64,
+      onCollapsedChange: noop,
+      size: 240,
+    }
+    const panel = createPanel(createPanelGroup('horizontal'), options)
+    panel.attach(mount())
+
+    panel.sync({ ...options, collapsed: true })
+    expect(panel.target).toBe(64)
+    expect(vi.mocked(animate)).toHaveBeenCalledWith(
+      panel.motion.content,
+      64,
+      expect.anything()
+    )
+
+    panel.motion.size.jump(64)
+    panel.sync({ ...options, collapsed: false })
+    expect(panel.target).toBe(240)
+    expect(vi.mocked(animate)).toHaveBeenCalledWith(
+      panel.motion.content,
+      240,
+      expect.anything()
+    )
+  })
+
+  it('collapses to collapsedSize past half the way down to it', () => {
+    const onCollapsedChange = vi.fn()
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      collapsedSize: 60,
+      minSize: 200,
+      onCollapsedChange,
+      size: 240,
+    })
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: -100, y: 0 })
+    expect(onCollapsedChange).not.toHaveBeenCalled()
+    panel.drag.move({ x: -120, y: 0 })
+    expect(onCollapsedChange).toHaveBeenCalledWith(true)
+    expect(panel.motion.size.get()).toBe(60)
+    expect(panel.motion.content.get()).toBe(60)
+    panel.drag.end()
+  })
+
+  it('lays pinned content out at the rail a drag collapses to', () => {
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      collapsedSize: 60,
+      minSize: 200,
+      onCollapsedChange: noop,
+      pin: true,
+      size: 240,
+    })
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: -150, y: 0 })
+    panel.drag.end()
+    expect(panel.motion.content.get()).toBe(60)
+  })
+
+  it('keeps a keyboard size whole when no whole pixel fits the bounds', () => {
+    const onSizeChange = vi.fn()
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      maxSize: '17.59%',
+      minSize: '17.56%',
+      onSizeChange,
+      size: 176,
+    })
+    panel.attach(mount())
+
+    panel.resizeByKey(key('End'))
+    expect(onSizeChange).toHaveBeenLastCalledWith(176)
+  })
+
+  it('holds pinned content still when a drag interrupts a fold', () => {
+    const options = { onCollapsedChange: noop, pin: true, size: 240 }
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      ...options,
+      collapsed: true,
+      collapsedSize: 60,
+    })
+    panel.attach(mount())
+
+    panel.sync({ ...options, collapsed: false, collapsedSize: 60 })
+    panel.drag.start()
+    const held = panel.motion.content.get()
+    expect(panel.motion.content.isAnimating()).toBe(false)
+    panel.drag.move({ x: 20, y: 0 })
+    expect(panel.motion.content.get()).toBe(held)
+    panel.drag.end()
+  })
+
+  it('mounts collapsed at a percentage collapsedSize of the group', () => {
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      collapsed: true,
+      collapsedSize: '5%',
+      size: 240,
+    })
+    panel.attach(mount())
+
+    expect(panel.target).toBe(50)
+    expect(panel.motion.content.get()).toBe(50)
+  })
+
   it('moves the keyboard step towards the panel edge', () => {
     const onSizeChange = vi.fn()
     const leading = createPanel(createPanelGroup('horizontal'), {
@@ -379,6 +493,22 @@ describe('createPanel', () => {
     trailing.attach(mount({ fillFirst: true }))
     trailing.resizeByKey(key('ArrowRight'))
     expect(onSizeChange).toHaveBeenLastCalledWith(190)
+  })
+
+  it('keeps keyboard sizes whole inside percentage bounds', () => {
+    const onSizeChange = vi.fn()
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      maxSize: '48.29%',
+      minSize: '17.56%',
+      onSizeChange,
+      size: 240,
+    })
+    panel.attach(mount())
+
+    panel.resizeByKey(key('Home'))
+    expect(onSizeChange).toHaveBeenLastCalledWith(176)
+    panel.resizeByKey(key('End'))
+    expect(onSizeChange).toHaveBeenLastCalledWith(482)
   })
 
   it('pages in the same direction as the arrows', () => {
