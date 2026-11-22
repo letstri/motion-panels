@@ -414,6 +414,36 @@ describe('createPanel', () => {
     panel.drag.end()
   })
 
+  it('lays pinned content out at the rail a drag collapses to', () => {
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      collapsedSize: 60,
+      minSize: 200,
+      onCollapsedChange: noop,
+      pin: true,
+      size: 240,
+    })
+    panel.attach(mount())
+
+    panel.drag.start()
+    panel.drag.move({ x: -150, y: 0 })
+    panel.drag.end()
+    expect(panel.motion.content.get()).toBe(60)
+  })
+
+  it('keeps a keyboard size whole when no whole pixel fits the bounds', () => {
+    const onSizeChange = vi.fn()
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      maxSize: '17.59%',
+      minSize: '17.56%',
+      onSizeChange,
+      size: 176,
+    })
+    panel.attach(mount())
+
+    panel.resizeByKey(key('End'))
+    expect(onSizeChange).toHaveBeenLastCalledWith(176)
+  })
+
   it('mounts collapsed at a percentage collapsedSize of the group', () => {
     const panel = createPanel(createPanelGroup('horizontal'), {
       collapsed: true,

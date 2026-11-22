@@ -266,6 +266,8 @@ export const createPanel = <S extends Size>(
   const stopSettle = size.on('animationComplete', () => {
     if (size.get() === target) {
       setFolding(false)
+      // The group may have resized mid-fold, when a percentage size could not follow it.
+      refit()
       options.onFoldEnd?.()
     }
   })
@@ -326,7 +328,7 @@ export const createPanel = <S extends Size>(
       }
       stopDragging()
       freeFill()
-      if (options.pin && !session.collapsed) {
+      if (options.pin && (!session.collapsed || collapsedPixels() > 0)) {
         content.jump(size.get())
       }
       if (!session.collapsed) {
@@ -379,7 +381,8 @@ export const createPanel = <S extends Size>(
     }
     event.preventDefault()
     // Percentage bounds resolve to fractions of a pixel; the size handed back stays whole and inside them.
-    const value = clamp(Math.round(next), Math.ceil(min), Math.floor(max))
+    const low = Math.ceil(min)
+    const value = clamp(Math.round(next), low, Math.max(low, Math.floor(max)))
     if (options.collapsed && value > 0) {
       options.onCollapsedChange?.(false)
     }
