@@ -31,6 +31,7 @@ export type SizedPanelProps<S extends Size = number> = Omit<
 > & {
   children?: ReactNode
   collapsed?: boolean
+  collapsedSize?: Size
   defaultSize?: S
   keepMounted?: boolean
   maxSize?: Size
@@ -131,10 +132,18 @@ const FillPanel = ({
   )
 }
 
+/** A panel collapsed to a size of its own still shows its content there. */
+const showsContent = (collapsed?: boolean, collapsedSize?: Size) =>
+  !collapsed ||
+  (typeof collapsedSize === 'string'
+    ? Number(collapsedSize.slice(0, -1)) > 0
+    : (collapsedSize ?? 0) > 0)
+
 const SizedPanel = <S extends Size>({
   animate,
   children,
   collapsed,
+  collapsedSize,
   custom,
   defaultSize,
   exit,
@@ -158,6 +167,7 @@ const SizedPanel = <S extends Size>({
   const elementRef = useRef<HTMLDivElement>(null)
   const options: PanelOptions<S> = {
     collapsed,
+    collapsedSize,
     defaultSize,
     maxSize,
     minSize,
@@ -184,7 +194,9 @@ const SizedPanel = <S extends Size>({
   const closedPose =
     exit ?? (typeof initial === 'boolean' ? undefined : initial)
   const present =
-    !collapsed || state.dragging || (closedPose === undefined && state.folding)
+    showsContent(collapsed, collapsedSize) ||
+    state.dragging ||
+    (closedPose === undefined && state.folding)
   const [shown, setShown] = useState(present)
   if (present && !shown) {
     setShown(true)

@@ -69,7 +69,12 @@ export const API: {
       [
         'collapsed',
         'boolean',
-        'Folds the panel to zero. Dragging below half of minSize sets it too, once onCollapsedChange is there to hear it.',
+        'Folds the panel to zero, or to collapsedSize. Dragging below half of minSize (half the way down to collapsedSize) sets it too, once onCollapsedChange is there to hear it.',
+      ],
+      [
+        'collapsedSize',
+        'number | string (default 0)',
+        'What collapsed folds the panel to, in pixels or as a percentage of the group: a rail of icons instead of nothing. Above zero the content stays mounted and follows the size through the fold, so it lays itself out anew as it narrows instead of being clipped at the open size.',
       ],
       [
         'onCollapsedChange',
@@ -99,7 +104,7 @@ export const API: {
       [
         'pin',
         'boolean',
-        'Holds the whole content still: laid out once per fold (filling panels) and once per drag (filling and sized panels) instead of once per frame, at the largest size the motion can reach, with the panel edge clipping it. For a framed panel, put a Pin around the heavy part instead.',
+        'Holds the whole content still instead of laying it out on every frame, with the panel edge clipping it: a fold lays it out once at the size it ends with (filling panels), a drag holds it at the size it began with and lays it out again when it ends (filling and sized panels). For a framed panel, put a Pin around the heavy part instead.',
       ],
     ],
   },
@@ -155,7 +160,7 @@ export const API: {
       [
         'controller.target',
         'number',
-        'The size the panel is settling on, 0 while collapsed. What a separator reports as aria-valuenow.',
+        'The size the panel is settling on, collapsedSize (0 by default) while collapsed. What a separator reports as aria-valuenow.',
       ],
       [
         'controller.reset',

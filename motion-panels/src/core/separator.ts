@@ -59,11 +59,11 @@ export const attachSeparator = (
       const { max, min } = panel.bounds()
       element.setAttribute('aria-valuenow', String(panel.target))
       element.setAttribute('aria-valuetext', `${panel.target} pixels`)
-      element.setAttribute('aria-valuemin', String(min))
+      element.setAttribute('aria-valuemin', String(Math.ceil(min)))
       if (panel.options.maxSize === undefined) {
         element.removeAttribute('aria-valuemax')
       } else {
-        element.setAttribute('aria-valuemax', String(max))
+        element.setAttribute('aria-valuemax', String(Math.floor(max)))
       }
     }
   }

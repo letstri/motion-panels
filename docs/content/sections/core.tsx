@@ -82,7 +82,7 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
         ],
         [
           'sized panel',
-          'flex-shrink: 0 and its extent from motion.size, floored at 0.',
+          'flex-shrink: 0, its extent from motion.size floored at 0, and overflow: clip while it is collapsed, folding or dragged, so the content it holds still is cut at its edge.',
         ],
         [
           'panel content',
@@ -100,9 +100,10 @@ export function mountSplit(root: HTMLElement, panel: HTMLElement, fill: HTMLElem
     />
     <Subheading>Folds and reorders</Subheading>
     <p className={`${LEAD} mt-3`}>
-      The demo above stops at a drag. A fold is one sync away, and a reorder is
-      two calls around the DOM change: measure the children before, play the
-      trip after.
+      The demo above folds through onCollapsedChange: drag past half the
+      minimum, or press Enter on the grip. A button is the same one sync, and a
+      reorder is two calls around the DOM change: measure the children before,
+      play the trip after.
     </p>
     <Code
       code={`

@@ -86,13 +86,13 @@ export const ReorderDemo = () => {
     >
       <Group onOrderChange={setOrder} order={order}>
         {side(order[0])}
-        <Separator className={SEPARATOR} />
+        <Separator className={SEPARATOR} aria-label={`Resize ${order[0]}`} />
         <Pane>
           <Slab label="workspace.tsx">
             <Lines lines={SOURCE} />
           </Slab>
         </Pane>
-        <Separator className={SEPARATOR} />
+        <Separator className={SEPARATOR} aria-label={`Resize ${order[1]}`} />
         {side(order[1])}
       </Group>
     </Demo>

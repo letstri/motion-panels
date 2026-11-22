@@ -65,15 +65,20 @@ const mountSplit = (root: HTMLElement) => {
   root.append(panel, fill)
 
   let size = start
+  let collapsed = false
   const base = {
     maxSize: '55%' as const,
     minSize: '20%' as const,
+    onCollapsedChange: (next: boolean) => {
+      collapsed = next
+      controller.sync({ ...base, collapsed, size })
+    },
     onSizeChange: (next: number) => {
       size = next
-      controller.sync({ ...base, size })
+      controller.sync({ ...base, collapsed, size })
     },
   }
-  const controller = createPanel(group, { ...base, size })
+  const controller = createPanel(group, { ...base, collapsed, size })
   const detach = controller.attach(panel)
   const detachGrip = attachSeparator(grip, group, controller)
 
@@ -88,11 +93,16 @@ const mountSplit = (root: HTMLElement) => {
   const stopContent = controller.motion.content.on('change', (value) => {
     content.style.width = `${value}px`
   })
+  const stopState = controller.subscribe(() => {
+    const { dragging, folding } = controller.state
+    panel.style.overflow = collapsed || dragging || folding ? 'clip' : 'visible'
+  })
 
   content.style.width = `${size}px`
 
   return () => {
     detachGrip()
+    stopState()
     stopContent()
     stopSize()
     detach()

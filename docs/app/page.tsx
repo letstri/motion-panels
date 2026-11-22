@@ -10,6 +10,7 @@ import { Nesting } from '@/content/sections/nesting'
 import { Orientation } from '@/content/sections/orientation'
 import { Pinning } from '@/content/sections/pinning'
 import { QuickStart } from '@/content/sections/quick-start'
+import { Rail } from '@/content/sections/rail'
 import { Reordering } from '@/content/sections/reorder'
 import { SeparatorSection } from '@/content/sections/separator'
 import { Styling } from '@/content/sections/styling'
@@ -32,6 +33,7 @@ const DocsPage = () => (
         <SeparatorSection />
         <Orientation />
         <Collapsing />
+        <Rail />
         <Pinning />
         <Nesting />
         <Reordering />

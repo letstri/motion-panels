@@ -7,7 +7,7 @@ export const Pinning = () => (
   <Section
     id="pinning"
     title="Pinning"
-    lead="A panel reflows its content on every frame of a fold or a drag. A pinned one sizes the content once, up front, and anchors it to the edge that is not moving, so the content holds still while the panel edge slides across it. A drag sizes it to the largest extent the drag can reach. Toggle the pin off and watch the paragraph rewrap the whole way through."
+    lead="A panel reflows its content on every frame of a fold or a drag. A pinned one sizes the content once, up front, and anchors it to the edge that is not moving, so the content holds still while the panel edge slides across it. A drag holds it at the size it had when the drag began and lays it out once more when the drag ends. Toggle the pin off and watch the paragraph rewrap the whole way through."
   >
     <PinDemo />
     <p className={ASIDE}>
