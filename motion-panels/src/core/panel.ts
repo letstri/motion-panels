@@ -295,6 +295,8 @@ export const createPanel = <S extends Size>(
       })
       // Held where it stands until the drag ends: content laid out wider than its box rewraps and slides under the other panel before the pointer has done anything.
       holdFill(available() - size.get())
+      // A fold under way would keep moving content the drag means to hold.
+      content.stop()
       release()
       unlock = lockBody(cursor, drag.cancel)
       setFolding(false)
@@ -336,7 +338,9 @@ export const createPanel = <S extends Size>(
           report(Math.round(clamp(size.get(), session.min, session.max)))
         )
       }
-      if (size.get() !== target) {
+      if (size.get() === target) {
+        refit()
+      } else {
         fold(target, size.get())
       }
     },
@@ -351,6 +355,7 @@ export const createPanel = <S extends Size>(
       }
       stopDragging()
       freeFill()
+      refit()
     },
   }
 

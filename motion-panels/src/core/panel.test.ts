@@ -444,6 +444,24 @@ describe('createPanel', () => {
     expect(onSizeChange).toHaveBeenLastCalledWith(176)
   })
 
+  it('holds pinned content still when a drag interrupts a fold', () => {
+    const options = { onCollapsedChange: noop, pin: true, size: 240 }
+    const panel = createPanel(createPanelGroup('horizontal'), {
+      ...options,
+      collapsed: true,
+      collapsedSize: 60,
+    })
+    panel.attach(mount())
+
+    panel.sync({ ...options, collapsed: false, collapsedSize: 60 })
+    panel.drag.start()
+    const held = panel.motion.content.get()
+    expect(panel.motion.content.isAnimating()).toBe(false)
+    panel.drag.move({ x: 20, y: 0 })
+    expect(panel.motion.content.get()).toBe(held)
+    panel.drag.end()
+  })
+
   it('mounts collapsed at a percentage collapsedSize of the group', () => {
     const panel = createPanel(createPanelGroup('horizontal'), {
       collapsed: true,
